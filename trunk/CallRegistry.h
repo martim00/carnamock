@@ -20,8 +20,10 @@ public:
 	IRegistry(const std::string &_methodName)
 		: methodName(_methodName) {}
 
+   std::string MethodName() const { return methodName; }
 protected:
 	std::string methodName;
+  
 };
 
 template <class ReturnType>
@@ -34,7 +36,7 @@ public:
 		MockMixin::GetRegistry<ReturnType>().erase(methodName);
 		if (!AllCallsVerified())
 		{
-			std::runtime_error e("Nem todas as expectations foram aceitas");
+			std::runtime_error e("Nem todas as expectations do metodo "+methodName+" foram aceitas");
 			throw e;
 		}
 	}
@@ -101,7 +103,7 @@ public:
 
 		if (!AllCallsVerified() && verifyOnDestructor)
 		{
-			std::runtime_error e("Nem todas as expectations foram aceitas");
+			std::runtime_error e("Nem todas as expectations do metodo "+methodName+" foram aceitas");
 			throw e;
 		}						
 	}
@@ -164,6 +166,7 @@ public:
 			return effectiveCalls[actualCall++];
 		}
 	}	
+   size_t GetTimesCalled() { return effectiveCalls.size(); }
 private:
 	std::vector<Call<ReturnType, Param1>* > effectiveCalls;
 	std::vector<CallAction<ReturnType, Param1>* > actions;
@@ -185,7 +188,9 @@ public:
 
 		if (!AllCallsVerified() && verifyOnDestructor)
 		{
-			std::runtime_error e("Nem todas as expectations foram aceitas");
+         std::stringstream ss;
+         ss << "Nem todas as expectations do metodo " << methodName <<  "foram aceitas\n";
+			std::runtime_error e(ss.str());
 			throw e;
 		}
 	}
@@ -248,6 +253,7 @@ public:
 			return effectiveCalls[actualCall++];
 		}
 	}	
+   size_t GetTimesCalled() { return effectiveCalls.size(); }
 private:
 	std::vector<Call<ReturnType, Param1, Param2>* > effectiveCalls;
 	std::vector<CallAction<ReturnType, Param1, Param2>* > actions;
@@ -269,7 +275,7 @@ public:
 
 		if (!AllCallsVerified() && verifyOnDestructor)
 		{
-			std::runtime_error e("Nem todas as expectations foram aceitas");
+         std::runtime_error e("Nem todas as expectations do metodo "+methodName+" foram aceitas");
 			throw e;
 		}
 	}
@@ -288,11 +294,6 @@ public:
 	{
 		if (effectiveCalls.empty()) return true;
 		return (effectiveCalls[effectiveCalls.size()-1]->Verified());
-	}
-
-	bool ExpectationsAccepted() const
-	{
-		return false;
 	}
 
 	Call<ReturnType, Param1, Param2, Param3> &AddCall(Param1 p1, Param2 p2, Param3 p3)
@@ -332,6 +333,7 @@ public:
 			return effectiveCalls[actualCall++];
 		}
 	}	
+   size_t GetTimesCalled() { return effectiveCalls.size(); }
 private:
 	std::vector<Call<ReturnType, Param1, Param2, Param3>* > effectiveCalls;
 	std::vector<CallAction<ReturnType, Param1, Param2, Param3>* > actions;
@@ -353,7 +355,7 @@ public:
 
 		if (!AllCallsVerified() && verifyOnDestructor)
 		{
-			std::runtime_error e("Nem todas as expectations foram aceitas");
+			std::runtime_error e("Nem todas as expectations do metodo "+methodName+" foram aceitas");
 			throw e;
 		}
 	}
@@ -416,6 +418,7 @@ public:
 			return effectiveCalls[actualCall++];
 		}
 	}	
+   size_t GetTimesCalled() { return effectiveCalls.size(); }
 private:
 	std::vector<Call<ReturnType, Param1, Param2, Param3, Param4>* > effectiveCalls;
 	std::vector<CallAction<ReturnType, Param1, Param2, Param3, Param4>* > actions;

@@ -26,7 +26,12 @@ public:
 				registry.GetNextCall()->Verified(true);
 			} catch (std::runtime_error&)
 			{
-				std::runtime_error e("expectation falhou no numero de vezes");
+            std::stringstream ss;
+            ss << "Expectation do metodo " <<  registry.MethodName() << "falhou no numero de vezes\n";
+            ss << "Era(m) esperada(s) " << times << " vez(es).\n";
+            ss << "Fora(m) chamada(s) " << registry.GetTimesCalled() << " vez(es).\n";
+
+				std::runtime_error e(ss.str());
 				throw e;
 			}
 		}
@@ -50,8 +55,8 @@ public:
 			try {
 				call= registry.GetNextCall();
 				if (parameterWasSetted) {
-					if (*matcher1 != call->GetParam1() /*!= param1->GetValue()*/) {
-						std::runtime_error e("expectation falhou");
+					if (*matcher1 != call->GetParam1()) {
+                  std::runtime_error e("expectation falhou. metodo: " + registry.MethodName());
 						throw e;
 					}
 					call->Verified(true);
@@ -62,8 +67,13 @@ public:
 				//todo: setar log no registry para que nao precise verificar no destructor.
 
 				registry.VerifyOnDestructor(false);
-				std::runtime_error e("expectation falhou no numero de vezes");
-				throw e;
+            std::stringstream ss;
+            ss << "Expectation do metodo " <<  registry.MethodName() << "falhou no numero de vezes\n";
+            ss << "Era(m) esperada(s) " << times << " vez(es).\n";
+            ss << "Fora(m) chamada(s) " << registry.GetTimesCalled() << " vez(es).\n";
+
+            std::runtime_error e(ss.str());
+            throw e;
 			}
 		}
 		return *this;
@@ -116,8 +126,13 @@ public:
 				//todo: setar log no registry para que nao precise verificar no destructor.
 
 				registry.VerifyOnDestructor(false);
-				std::runtime_error e("expectation falhou no numero de vezes");
-				throw e;
+            std::stringstream ss;
+            ss << "Expectation do metodo " <<  registry.MethodName() << "falhou no numero de vezes\n";
+            ss << "Era(m) esperada(s) " << times << " vez(es).\n";
+            ss << "Fora(m) chamada(s) " << registry.GetTimesCalled() << " vez(es).\n";
+
+            std::runtime_error e(ss.str());
+            throw e;
 			}
 		}
 		return *this;
@@ -170,8 +185,13 @@ public:
 				//todo: setar log no registry para que nao precise verificar no destructor.
 
 				registry.VerifyOnDestructor(false);
-				std::runtime_error e("expectation falhou no numero de vezes");
-				throw e;
+            std::stringstream ss;
+            ss << "Expectation do metodo " <<  registry.MethodName() << "falhou no numero de vezes\n";
+            ss << "Era(m) esperada(s) " << times << " vez(es).\n";
+            ss << "Fora(m) chamada(s) " << registry.GetTimesCalled() << " vez(es).\n";
+
+            std::runtime_error e(ss.str());
+            throw e;
 			}
 		}
 		return *this;
@@ -228,8 +248,13 @@ public:
 				//todo: setar log no registry para que nao precise verificar no destructor.
 
 				registry.VerifyOnDestructor(false);
-				std::runtime_error e("expectation falhou no numero de vezes");
-				throw e;
+            std::stringstream ss;
+            ss << "Expectation do metodo " <<  registry.MethodName() << "falhou no numero de vezes\n";
+            ss << "Era(m) esperada(s) " << times << " vez(es).\n";
+            ss << "Fora(m) chamada(s) " << registry.GetTimesCalled() << " vez(es).\n";
+
+            std::runtime_error e(ss.str());
+            throw e;
 			}
 		}
 		return *this;

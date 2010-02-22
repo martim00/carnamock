@@ -10,5 +10,12 @@ struct no_cref<const X &> { typedef X type; };
 template <typename X>
 struct no_cref<X &> { typedef X type; };
 
+template <typename X>
+struct no_cref<const X* const> { typedef const X* type; };
+
+//template <typename X>
+//struct no_cref<const X* > { typedef X* type; };
+
+
 
 #endif 
