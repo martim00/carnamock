@@ -1,227 +1,408 @@
 #ifndef INCLUDED_MOCK_H
 #define INCLUDED_MOCK_H
 
-#include <boost/function.hpp>
+#include <vector>
 #include <stdexcept>
-#include <sstream>
 
-#define METHOD0(returnType, methodName) returnType methodName() { this->registerCallForMethod(#methodName); }
-#define METHOD1(returnType, methodName, p1) returnType methodName(p1) { this->registerCallForMethod(#methodName); }
-#define METHOD2(returnType, methodName, p1, p2) returnType methodName(p1, p2) { this->registerCallForMethod(#methodName); }
-#define METHOD3(returnType, methodName, p1, p2, p3) returnType methodName(p1, p2, p3) { this->registerCallForMethod(#methodName); }
-#define METHOD4(returnType, methodName, p1, p2, p3, p4) returnType methodName(p1, p2, p3, p4) { this->registerCallForMethod(#methodName); }
-#define METHOD5(returnType, methodName, p1, p2, p3, p4, p5) returnType methodName(p1, p2, p3, p4, p5) { this->registerCallForMethod(#methodName); }
-#define METHOD6(returnType, methodName, p1, p2, p3, p4, p5, p6) returnType methodName(p1, p2, p3, p4, p5, p6) { this->registerCallForMethod(#methodName); }
-#define METHOD7(returnType, methodName, p1, p2, p3, p4, p5, p6, p7) returnType methodName(p1, p2, p3, p4, p5, p6, p7) { this->registerCallForMethod(#methodName); }
-#define METHOD8(returnType, methodName, p1, p2, p3, p4, p5, p6, p7, p8) returnType methodName(p1, p2, p3, p4, p5, p6, p7, p8) { this->registerCallForMethod(#methodName); }
+#include "CallRegistry.h"
+#include "Call.h"
+#include "CallMatcher.h"
+#include "ActionBuilder.h"
+#include "no_cref.h"
 
-
-
-#define RETURN_METHOD0(returnType, methodName) returnType methodName() { return this->registerCallForMethod<returnType>(#methodName); }
-#define RETURN_METHOD1(returnType, methodName, p1) returnType methodName(p1) { return this->registerCallForMethod<returnType,p1>(#methodName); }
-#define RETURN_METHOD2(returnType, methodName, p1, p2) returnType methodName(p1 p1Value, p2 p2Value) { return this->registerCallForMethod<returnType,p1,p2>(#methodName, p1Value, p2Value); }
-
-//#define METHOD0(returnType, methodName)										\
-//		returnType methodName()														\
-//		{																					\
-//			registerCallForMethod(#methodName);									\					
-//		}																					
-
-class CallRegistry
-{
-public:
-	CallRegistry() : timesExpected(0), timesCalled(0), allowTracking(true) {}
-
-	size_t GetTimesExpected() const { return timesExpected; }
-	size_t GetTimesCalled() const { return timesCalled; }
-
-	void IncrementTimesCalled()
-	{
-		timesCalled++;
-	}
-
-	void IncrementTimesExpected(int times)
-	{
-		timesExpected+= times;
-	}
-
-	bool ExpectationsAccepted() const
-	{
-		return timesExpected == timesCalled;
-	}
-
-   void TurnOffTracking()
-   {
-      allowTracking= true;
-   }
-
-   bool AllowTracking()
-   {
-      return allowTracking;
-   }
-
-private:
-   bool allowTracking;
-
-	size_t timesExpected;
-	size_t timesCalled;
-
-
-};
 
 class MockMixin 
 {
 public:
-
-	typedef std::map<std::string, CallRegistry*>::iterator CallIterator; 
+	typedef std::map<std::string, IRegistry*>::iterator CallIterator; 
 
 	virtual ~MockMixin() {
 		clearCalls();
 	} 
 	MockMixin() {} 
 
-	void Expect(const std::string &methodName, int times= 1)
+	template <class ReturnType>
+	CallMatcher<ReturnType> *Expect(const std::string &methodName)
 	{
-		if (!alreadyExistsRegistryForMethod(methodName))
-			methodCalls[methodName]= new CallRegistry();
-		methodCalls[methodName]->IncrementTimesExpected(times);
+		if (!alreadyExistsRegistryForMethod<ReturnType>(methodName)) {
+			GetRegistry<ReturnType>()[methodName]= new CallRegistry<ReturnType>(methodName);
+			this->regReg[methodName]= this->GetRegistry<ReturnType>()[methodName];
+		}
+		return new CallMatcher<ReturnType>(*GetRegistry<ReturnType>()[methodName]);
 	}
 
-   void TurnOffMethodTracking(const std::string &methodName)
-   {
-      methodCalls[methodName]->TurnOffTracking();
-   }
+	template <class ReturnType, class Param1>
+	CallMatcher<ReturnType, typename no_cref<Param1>::type> *Expect(const std::string &methodName)
+	{
+		typedef no_cref<Param1>::type P1;
+		if (!alreadyExistsRegistryForMethod<ReturnType, P1>(methodName)) {
+			GetRegistry<ReturnType, P1>()[methodName]= new CallRegistry<ReturnType, P1>(methodName);
+			this->regReg[methodName]= this->GetRegistry<ReturnType, P1>()[methodName];
+		}		
+		return new CallMatcher<ReturnType, P1>(*GetRegistry<ReturnType, P1>()[methodName]);
+	}
 
-   template <typename ReturnType>
-   void OnCall(const std::string &methodName, boost::function0<ReturnType> dummyImpl)
-   {
-      GetDummyImplementations<ReturnType>()[methodName]= dummyImpl;
-   }
+	template <class ReturnType, class Param1, class Param2>
+	CallMatcher<ReturnType, typename no_cref<Param1>::type, typename no_cref<Param2>::type> *
+		Expect(const std::string &methodName)
+	{
+		typedef no_cref<Param1>::type P1;
+		typedef no_cref<Param2>::type P2;
 
-   template <typename ReturnType, typename P1>
-   void OnCall(const std::string &methodName, boost::function1<ReturnType, P1> dummyImpl)
-   {
-      GetDummyImplementations<ReturnType, P1>()[methodName]= dummyImpl;
-   }
+		if (!alreadyExistsRegistryForMethod<ReturnType, P1, P2>(methodName)) {
+			GetRegistry<ReturnType, P1, P2>()[methodName]= new CallRegistry<ReturnType, P1, P2>(methodName);
+			this->regReg[methodName]= this->GetRegistry<ReturnType, P1, P2>()[methodName];
+		}		
+		return new CallMatcher<ReturnType, P1, P2>(*GetRegistry<ReturnType, P1, P2>()[methodName]);
+	}
 
-   template <typename ReturnType, typename P1, typename P2>
-   void OnCall(const std::string &methodName, boost::function2<ReturnType, P1, P2> dummyImpl)
-   {
-      GetDummyImplementations<ReturnType, P1, P2>()[methodName]= dummyImpl;
-   }
+	
+	template <class ReturnType, class Param1, class Param2, class Param3>
+	CallMatcher<ReturnType
+		, typename no_cref<Param1>::type
+		, typename no_cref<Param2>::type
+		, typename no_cref<Param3>::type> *Expect(const std::string &methodName)
+	{
+		typedef no_cref<Param1>::type P1;
+		typedef no_cref<Param2>::type P2;
+		typedef no_cref<Param3>::type P3;
 
+		if (!alreadyExistsRegistryForMethod<ReturnType, P1, P2, P3>(methodName)) {
+			GetRegistry<ReturnType, P1, P2, P3>()[methodName]= new CallRegistry<ReturnType, P1, P2, P3>(methodName);
+			this->regReg[methodName]= this->GetRegistry<ReturnType, P1, P2, P3>()[methodName];
+		}		
+		return new CallMatcher<ReturnType, P1, P2, P3>(*GetRegistry<ReturnType, P1, P2, P3>()[methodName]);
+	}
 
-	/*template <typename P1>
-	void Expect(const std::string &methodName, P1 p1)
-	{	
-		if (!alreadyExistsRegistryForMethod(methodName))
-			methodCalls[methodName]= new CallRegistry();
-		methodCalls[methodName]->IncrementTimesExpected();
-	}	*/
+	//4 arity
 
+	template <class ReturnType, class Param1, class Param2, class Param3, class Param4>
+	CallMatcher<ReturnType
+		, typename no_cref<Param1>::type
+		, typename no_cref<Param2>::type
+		, typename no_cref<Param3>::type
+		, typename no_cref<Param4>::type> *Expect(const std::string &methodName)
+	{
+		typedef no_cref<Param1>::type P1;
+		typedef no_cref<Param2>::type P2;
+		typedef no_cref<Param3>::type P3;
+		typedef no_cref<Param4>::type P4;
+
+		if (!alreadyExistsRegistryForMethod<ReturnType, P1, P2, P3, P4>(methodName)) {
+			GetRegistry<ReturnType, P1, P2, P3, P4>()[methodName]= new CallRegistry<ReturnType, P1, P2, P3, P4>(methodName);
+			this->regReg[methodName]= this->GetRegistry<ReturnType, P1, P2, P3, P4>()[methodName];
+		}		
+		return new CallMatcher<ReturnType, P1, P2, P3, P4>(*GetRegistry<ReturnType, P1, P2, P3, P4>()[methodName]);
+	}
+
+	//5 arity
+	template <class ReturnType, class Param1, class Param2, class Param3, class Param4, class Param5>
+	CallMatcher<ReturnType
+		, typename no_cref<Param1>::type
+		, typename no_cref<Param2>::type
+		, typename no_cref<Param3>::type
+		, typename no_cref<Param4>::type
+		, typename no_cref<Param5>::type> *Expect(const std::string &methodName)
+	{
+		typedef no_cref<Param1>::type P1;
+		typedef no_cref<Param2>::type P2;
+		typedef no_cref<Param3>::type P3;
+		typedef no_cref<Param4>::type P4;
+		typedef no_cref<Param5>::type P5;
+
+		if (!alreadyExistsRegistryForMethod<ReturnType, P1, P2, P3, P4, P5>(methodName)) {
+			GetRegistry<ReturnType, P1, P2, P3, P4, P5>()[methodName]= new CallRegistry<ReturnType, P1, P2, P3, P4, P5>(methodName);
+			this->regReg[methodName]= this->GetRegistry<ReturnType, P1, P2, P3, P4, P5>()[methodName];
+		}		
+		return new CallMatcher<ReturnType, P1, P2, P3, P4, P5>(*GetRegistry<ReturnType, P1, P2, P3, P4, P5>()[methodName]);
+	}
+	
+	template <class ReturnType>
 	bool alreadyExistsRegistryForMethod(const std::string &methodName)
 	{
-		return methodCalls.find(methodName) != methodCalls.end();
+		return GetRegistry<ReturnType>().find(methodName) != GetRegistry<ReturnType>().end();
 	}
 
-	void registerCallForMethod(const std::string &methodName)
+	template <class ReturnType, class P1>
+	bool alreadyExistsRegistryForMethod(const std::string &methodName)
 	{
-		if (!alreadyExistsRegistryForMethod(methodName))			
-			this->methodCalls[methodName]= new CallRegistry();
-		this->methodCalls[methodName]->IncrementTimesCalled();	
-
-      if (existsDummyImplementations<void>(methodName))
-         GetDummyImplementations<void>()[methodName]();
+		return GetRegistry<ReturnType, P1>().find(methodName) != GetRegistry<ReturnType, P1>().end();
 	}
 
-   template <typename ReturnType>
-   ReturnType registerCallForMethod(const std::string &methodName)
+	template <class ReturnType, class P1, class P2>
+	bool alreadyExistsRegistryForMethod(const std::string &methodName)
 	{
-		if (!alreadyExistsRegistryForMethod(methodName))
-			this->methodCalls[methodName]= new CallRegistry();
-		this->methodCalls[methodName]->IncrementTimesCalled();
-
-      if (existsDummyImplementations<ReturnType>(methodName))
-         return GetDummyImplementations<ReturnType>()[methodName]();
+		return GetRegistry<ReturnType, P1, P2>().find(methodName) != GetRegistry<ReturnType, P1, P2>().end();
 	}
 
-   template <typename ReturnType, typename P1>
-   ReturnType registerCallForMethod(const std::string &methodName)
+	template <class ReturnType, class P1, class P2, class P3>
+	bool alreadyExistsRegistryForMethod(const std::string &methodName)
+	{
+		return GetRegistry<ReturnType, P1, P2, P3>().find(methodName) != GetRegistry<ReturnType, P1, P2, P3>().end();
+	}
+
+	template <class ReturnType, class P1, class P2, class P3, class P4>
+	bool alreadyExistsRegistryForMethod(const std::string &methodName)
+	{
+		return GetRegistry<ReturnType, P1, P2, P3, P4>().find(methodName) != GetRegistry<ReturnType, P1, P2, P3, P4>().end();
+	}
+
+	template <class ReturnType, class P1, class P2, class P3, class P4, class P5>
+	bool alreadyExistsRegistryForMethod(const std::string &methodName)
+	{
+		return GetRegistry<ReturnType, P1, P2, P3, P4, P5>().find(methodName) != GetRegistry<ReturnType, P1, P2, P3, P4, P5>().end();
+	}
+
+	template <class ReturnType>
+	ReturnType registerCallForMethod(const std::string &methodName)
+	{
+		if (!alreadyExistsRegistryForMethod<ReturnType>(methodName)) {
+			this->GetRegistry<ReturnType>()[methodName]= new CallRegistry<ReturnType>(methodName);
+			this->regReg[methodName]= this->GetRegistry<ReturnType>()[methodName];
+		}
+		this->GetRegistry<ReturnType>()[methodName]->AddCall();
+
+		return this->GetRegistry<ReturnType>()[methodName]->ExecuteDefaultAction();
+	}
+
+	template <class ReturnType>
+	ReturnType registerCallForVoidMethod(const std::string &methodName)
+	{
+		if (!alreadyExistsRegistryForMethod<ReturnType>(methodName)) {
+			this->GetRegistry<ReturnType>()[methodName]= new CallRegistry<ReturnType>(methodName);
+			this->regReg[methodName]= this->GetRegistry<ReturnType>()[methodName];
+		}
+		this->GetRegistry<ReturnType>()[methodName]->AddCall();		
+	}	
+	
+	//1 arity
+	template <class ReturnType, class Param1>
+	ReturnType registerCallForMethod(const std::string &methodName, Param1 p1)
+	{
+		typedef no_cref<Param1>::type P1;
+		if (!alreadyExistsRegistryForMethod<ReturnType, P1>(methodName)) {
+			this->GetRegistry<ReturnType, P1>()[methodName]= new CallRegistry<ReturnType, P1>(methodName);
+			this->regReg[methodName]= this->GetRegistry<ReturnType, P1>()[methodName];
+		}
+		Call<ReturnType, P1> &call= this->GetRegistry<ReturnType, P1>()[methodName]->AddCall(p1);
+		
+		return this->GetRegistry<ReturnType, P1>()[methodName]->ExecuteDefaultAction(p1);
+	}
+
+	template <class ReturnType, class Param1>
+	ReturnType registerCallForVoidMethod(const std::string &methodName, Param1 p1)
+	{
+		typedef no_cref<Param1>::type P1;
+		if (!alreadyExistsRegistryForMethod<ReturnType, P1>(methodName)) {
+			this->GetRegistry<ReturnType, P1>()[methodName]= new CallRegistry<ReturnType, P1>(methodName);
+			this->regReg[methodName]= this->GetRegistry<ReturnType, P1>()[methodName];
+		}
+		Call<ReturnType, P1> &call= this->GetRegistry<ReturnType, P1>()[methodName]->AddCall(p1);
+	}
+
+	//2 arity
+	template <class ReturnType, class P1, class P2>
+	CallRegistry<ReturnType, P1, P2> &GetRegistryForMethod(const std::string &methodName)
+	{
+		if (!alreadyExistsRegistryForMethod<ReturnType, P1, P2>(methodName)) {
+			this->GetRegistry<ReturnType, P1, P2>()[methodName]= new CallRegistry<ReturnType, P1, P2>(methodName);
+			this->regReg[methodName]= this->GetRegistry<ReturnType, P1, P2>()[methodName];
+		}
+		return *this->GetRegistry<ReturnType, P1, P2>()[methodName];
+	}
+
+	template <class ReturnType, class Param1, class Param2>
+	ReturnType registerCallForMethod(const std::string &methodName, Param1 p1, Param2 p2)
+	{
+		typedef no_cref<Param1>::type P1;
+		typedef no_cref<Param2>::type P2;
+
+		CallRegistry<ReturnType, P1, P2> &registry= this->GetRegistryForMethod<ReturnType, P1, P2>(methodName);
+		Call<ReturnType, P1, P2> &call= registry.AddCall(p1, p2);
+		
+		return registry.ExecuteDefaultAction(p1, p2);
+	}
+
+	template <class ReturnType, class Param1, class Param2>
+	ReturnType registerCallForVoidMethod(const std::string &methodName, Param1 p1, Param2 p2)
+	{
+		typedef no_cref<Param1>::type P1;
+		typedef no_cref<Param2>::type P2;
+
+		CallRegistry<ReturnType, P1, P2> &registry= this->GetRegistryForMethod<ReturnType, P1, P2>(methodName);
+		Call<ReturnType, P1, P2> &call= registry.AddCall(p1, p2);
+	}
+
+	//3 arity
+	template <class ReturnType, class P1, class P2, class P3>
+	CallRegistry<ReturnType, P1, P2, P3> &GetRegistryForMethod(const std::string &methodName)
+	{
+		if (!alreadyExistsRegistryForMethod<ReturnType, P1, P2, P3>(methodName)) {
+			this->GetRegistry<ReturnType, P1, P2, P3>()[methodName]= new CallRegistry<ReturnType, P1, P2, P3>(methodName);
+			this->regReg[methodName]= this->GetRegistry<ReturnType, P1, P2, P3>()[methodName];
+		}
+		return *this->GetRegistry<ReturnType, P1, P2, P3>()[methodName];
+	}
+
+	template <class ReturnType, class Param1, class Param2, class Param3>
+	ReturnType registerCallForMethod(const std::string &methodName, Param1 p1, Param2 p2, Param3 p3)
+	{
+		typedef no_cref<Param1>::type P1;
+		typedef no_cref<Param2>::type P2;
+		typedef no_cref<Param3>::type P3;
+
+		CallRegistry<ReturnType, P1, P2, P3> &registry= this->GetRegistryForMethod<ReturnType, P1, P2, P3>(methodName);
+		Call<ReturnType, P1, P2, P3> &call= registry.AddCall(p1, p2, p3);
+		
+		return registry.ExecuteDefaultAction(p1, p2, p3);
+	}
+
+   template <class ReturnType, class Param1, class Param2, class Param3>
+   ReturnType registerCallForVoidMethod(const std::string &methodName, Param1 p1, Param2 p2, Param3 p3)
    {
-      if (!alreadyExistsRegistryForMethod(methodName))
-         this->methodCalls[methodName]= new CallRegistry();
-      this->methodCalls[methodName]->IncrementTimesCalled();
+      typedef no_cref<Param1>::type P1;
+      typedef no_cref<Param2>::type P2;
+      typedef no_cref<Param3>::type P3;
 
-      if (existsDummyImplementations<ReturnType, P1>(methodName))
-         return GetDummyImplementations<ReturnType, P1>()[methodName]();
+      CallRegistry<ReturnType, P1, P2, P3> &registry= this->GetRegistryForMethod<ReturnType, P1, P2, P3>(methodName);
+      Call<ReturnType, P1, P2, P3> &call= registry.AddCall(p1, p2, p3);
    }
 
-   template <typename ReturnType, typename P1, typename P2>
-   ReturnType registerCallForMethod(const std::string &methodName, P1 p1, P2 p2)
+
+	//4 arity
+	template <class ReturnType, class P1, class P2, class P3, class P4>
+	CallRegistry<ReturnType, P1, P2, P3, P4> &GetRegistryForMethod(const std::string &methodName)
+	{
+		if (!alreadyExistsRegistryForMethod<ReturnType, P1, P2, P3, P4>(methodName)) {
+			this->GetRegistry<ReturnType, P1, P2, P3, P4>()[methodName]= new CallRegistry<ReturnType, P1, P2, P3, P4>(methodName);
+			this->regReg[methodName]= this->GetRegistry<ReturnType, P1, P2, P3, P4>()[methodName];
+		}
+		return *this->GetRegistry<ReturnType, P1, P2, P3, P4>()[methodName];
+	}
+
+	template <class ReturnType, class Param1, class Param2, class Param3, class Param4>
+	ReturnType registerCallForMethod(const std::string &methodName, Param1 p1, Param2 p2, Param3 p3, Param4 p4)
+	{
+		typedef no_cref<Param1>::type P1;
+		typedef no_cref<Param2>::type P2;
+		typedef no_cref<Param3>::type P3;
+		typedef no_cref<Param4>::type P4;
+
+		CallRegistry<ReturnType, P1, P2, P3, P4> &registry= this->GetRegistryForMethod<ReturnType, P1, P2, P3, P4>(methodName);
+		Call<ReturnType, P1, P2, P3, P4> &call= registry.AddCall(p1, p2, p3, p4);
+		
+		return registry.ExecuteDefaultAction(p1, p2, p3, p4);
+	}
+
+   template <class ReturnType, class Param1, class Param2, class Param3, class Param4>
+   ReturnType registerCallForVoidMethod(const std::string &methodName, Param1 p1, Param2 p2, Param3 p3, Param4 p4)
    {
-      if (!alreadyExistsRegistryForMethod(methodName))
-         this->methodCalls[methodName]= new CallRegistry();
-      this->methodCalls[methodName]->IncrementTimesCalled();
+      typedef no_cref<Param1>::type P1;
+      typedef no_cref<Param2>::type P2;
+      typedef no_cref<Param3>::type P3;
+      typedef no_cref<Param4>::type P4;
 
-      if (existsDummyImplementations<ReturnType, P1, P2>(methodName))
-         return GetDummyImplementations<ReturnType, P1, P2>()[methodName](p1,p2);
+      CallRegistry<ReturnType, P1, P2, P3, P4> &registry= this->GetRegistryForMethod<ReturnType, P1, P2, P3, P4>(methodName);
+      Call<ReturnType, P1, P2, P3, P4> &call= registry.AddCall(p1, p2, p3, p4);
    }
 
-   template <typename ReturnType>
-   bool existsDummyImplementations(const std::string &methodName)
-   {      
-      return GetDummyImplementations<ReturnType>().find(methodName) 
-         != GetDummyImplementations<ReturnType>().end();
+
+	//5 arity
+	template <class ReturnType, class P1, class P2, class P3, class P4, class P5>
+	CallRegistry<ReturnType, P1, P2, P3, P4, P5> &GetRegistryForMethod(const std::string &methodName)
+	{
+		if (!alreadyExistsRegistryForMethod<ReturnType, P1, P2, P3, P4, P5>(methodName)) {
+			this->GetRegistry<ReturnType, P1, P2, P3, P4, P5>()[methodName]= new CallRegistry<ReturnType, P1, P2, P3, P4, P5>(methodName);
+			this->regReg[methodName]= this->GetRegistry<ReturnType, P1, P2, P3, P4, P5>()[methodName];
+		}
+		return *this->GetRegistry<ReturnType, P1, P2, P3, P4, P5>()[methodName];
+	}
+
+	template <class ReturnType, class Param1, class Param2, class Param3, class Param4, class Param5>
+	ReturnType registerCallForMethod(const std::string &methodName, Param1 p1, Param2 p2, Param3 p3, Param4 p4, Param5 p5)
+	{
+		typedef no_cref<Param1>::type P1;
+		typedef no_cref<Param2>::type P2;
+		typedef no_cref<Param3>::type P3;
+		typedef no_cref<Param4>::type P4;
+		typedef no_cref<Param5>::type P5;
+
+		CallRegistry<ReturnType, P1, P2, P3, P4, P5> &registry= this->GetRegistryForMethod<ReturnType, P1, P2, P3, P4, P5>(methodName);
+		Call<ReturnType, P1, P2, P3, P4, P5> &call= registry.AddCall(p1, p2, p3, p4, p5);
+		
+		return registry.ExecuteDefaultAction(p1, p2, p3, p4, p5);
+	}
+
+   template <class ReturnType>
+   ActionBuilder<ReturnType> *WhenCall(const std::string &methodName)
+   {
+      if (!alreadyExistsRegistryForMethod<ReturnType>(methodName)) {
+         this->GetRegistry<ReturnType>()[methodName]= new CallRegistry<ReturnType>(methodName);
+         this->regReg[methodName]= this->GetRegistry<ReturnType>()[methodName];
+      }
+      return new ActionBuilder<ReturnType>(*this->GetRegistry<ReturnType>()[methodName]);
    }
 
-   template <typename ReturnType, typename P1>
-   bool existsDummyImplementations(const std::string &methodName)
-   {      
-      return GetDummyImplementations<ReturnType, P1>().find(methodName) 
-         != GetDummyImplementations<ReturnType, P1>().end();
+	template <class ReturnType, class Param1>
+	ActionBuilder<ReturnType, typename no_cref<Param1>::type> *WhenCall(const std::string &methodName)
+	{
+		typedef no_cref<Param1>::type P1;
+		if (!alreadyExistsRegistryForMethod<ReturnType, P1>(methodName)) {
+			this->GetRegistry<ReturnType, P1>()[methodName]= new CallRegistry<ReturnType, P1>(methodName);
+			this->regReg[methodName]= this->GetRegistry<ReturnType, P1>()[methodName];
+		}
+
+		return new ActionBuilder<ReturnType, P1>(*this->GetRegistry<ReturnType, P1>()[methodName]);
+	}
+
+	template <class ReturnType, class Param1, class Param2>
+	ActionBuilder<ReturnType
+		, typename no_cref<Param1>::type
+		, typename no_cref<Param2>::type> *WhenCall(const std::string &methodName)
+	{
+		typedef no_cref<Param1>::type P1;
+		typedef no_cref<Param2>::type P2;
+		if (!alreadyExistsRegistryForMethod<ReturnType, P1, P2>(methodName)) {
+			this->GetRegistry<ReturnType, P1, P2>()[methodName]= new CallRegistry<ReturnType, P1, P2>(methodName);
+			this->regReg[methodName]= this->GetRegistry<ReturnType, P1, P2>()[methodName];
+		}
+
+		return new ActionBuilder<ReturnType, P1, P2>(*this->GetRegistry<ReturnType, P1, P2>()[methodName]);
+	}
+
+   template <class ReturnType, class Param1, class Param2, class Param3>
+   ActionBuilder<ReturnType
+      , typename no_cref<Param1>::type
+      , typename no_cref<Param2>::type
+      , typename no_cref<Param3>::type> *WhenCall(const std::string &methodName)
+   {
+      typedef no_cref<Param1>::type P1;
+      typedef no_cref<Param2>::type P2;
+      typedef no_cref<Param3>::type P3;
+      if (!alreadyExistsRegistryForMethod<ReturnType, P1, P2, P3>(methodName)) {
+         this->GetRegistry<ReturnType, P1, P2, P3>()[methodName]= new CallRegistry<ReturnType, P1, P2, P3>(methodName);
+         this->regReg[methodName]= this->GetRegistry<ReturnType, P1, P2, P3>()[methodName];
+      }
+
+      return new ActionBuilder<ReturnType, P1, P2, P3>(*this->GetRegistry<ReturnType, P1, P2, P3>()[methodName]);
    }
 
-   template <typename ReturnType, typename P1, typename P2>
-   bool existsDummyImplementations(const std::string &methodName)
-   {      
-      return GetDummyImplementations<ReturnType, P1, P2>().find(methodName) 
-         != GetDummyImplementations<ReturnType, P1, P2>().end();
-   }
 
-	void Verify()
+	/*void Verify()
 	{
 		CallIterator it= Begin();
 		for (; it != End(); it++)
-		{
-         if (!it->second->AllowTracking())
-            continue;
-
-			if (!it->second->ExpectationsAccepted()) {
-
-            std::stringstream ss;
-            ss << "O metodo " + it->first + " nao teve suas expectations aceitas...\n";
-            ss << "Esperava ser chamado " << it->second->GetTimesExpected() << " vezes. \n";
-            ss << "Foi chamado " << it->second->GetTimesCalled() << " vezes. \n";            
-            
-				std::runtime_error e(ss.str());
-				throw e;
-			}
-		}
-	}	
-
-	std::map<std::string, CallRegistry*> &GetMethodCalls() 
-	{
-		return methodCalls;
-	}	
+			it->second->Verify();	
+	}	*/
 
 	CallIterator Begin()
 	{
-		return methodCalls.begin();
+		return regReg.begin();
 	}
 
 	CallIterator End()
 	{
-		return methodCalls.end();
+		return regReg.end();
 	}
 
 protected:
@@ -231,63 +412,56 @@ protected:
 		for (; it != End(); it++)
 			delete it->second;
 	
-		methodCalls.clear();
+		regReg.clear();
 	}
 
+public:
 
-	
+	template <class ReturnType>
+	static std::map<std::string, CallRegistry<ReturnType>*> &GetRegistry()
+	{
+		static std::map<std::string, CallRegistry<ReturnType>*> registry;
+		return registry;
+	}
+
+	template <class ReturnType, class P1>
+	static std::map<std::string, CallRegistry<ReturnType, P1>*> &GetRegistry()
+	{
+		static std::map<std::string, CallRegistry<ReturnType, P1>*> registry;
+		return registry;
+	}
+
+	template <class ReturnType, class P1, class P2>
+	static std::map<std::string, CallRegistry<ReturnType, P1, P2>*> &GetRegistry()
+	{
+		static std::map<std::string, CallRegistry<ReturnType, P1, P2>*> registry;
+		return registry;
+	}
+
+	template <class ReturnType, class P1, class P2, class P3>
+	static std::map<std::string, CallRegistry<ReturnType, P1, P2, P3>*> &GetRegistry()
+	{
+		static std::map<std::string, CallRegistry<ReturnType, P1, P2, P3>*> registry;
+		return registry;
+	}
+
+	template <class ReturnType, class P1, class P2, class P3, class P4>
+	static std::map<std::string, CallRegistry<ReturnType, P1, P2, P3, P4>*> &GetRegistry()
+	{
+		static std::map<std::string, CallRegistry<ReturnType, P1, P2, P3, P4>*> registry;
+		return registry;
+	}
+
+	template <class ReturnType, class P1, class P2, class P3, class P4, class P5>
+	static std::map<std::string, CallRegistry<ReturnType, P1, P2, P3, P4, P5>*> &GetRegistry()
+	{
+		static std::map<std::string, CallRegistry<ReturnType, P1, P2, P3, P4, p5>*> registry;
+		return registry;
+	}
+
 protected:
-	std::map<std::string, CallRegistry*> methodCalls;
-
-   template <class ReturnType>
-   static std::map<std::string,boost::function0<ReturnType> > &GetDummyImplementations()
-   {
-      static std::map<std::string,boost::function0<ReturnType> > dummyImplementations;
-      return dummyImplementations;
-   }
-
-   template <class ReturnType, class P1>
-   static std::map<std::string,boost::function1<ReturnType, P1> > &GetDummyImplementations()
-   {
-      static std::map<std::string,boost::function1<ReturnType, P1> > dummyImplementations;
-      return dummyImplementations;
-   }
-
-   template <class ReturnType, class P1, class P2>
-   static std::map<std::string,boost::function2<ReturnType, P1, P2> > &GetDummyImplementations()
-   {
-      static std::map<std::string,boost::function2<ReturnType, P1, P2> > dummyImplementations;
-      return dummyImplementations;
-   }
-   
+	std::map<std::string, IRegistry*> regReg;	
 };
 
-
-
-//template <class Production>
-//class Mock : public Production
-//{	
-//public:
-//	
-//	Mock() : chamouMetodo(false) {}
-//
-//	template <class P1>
-//	Mock(P1 p1) : Production(p1), chamouMetodo(false) {}
-//
-//	template <class P1, class P2>
-//	Mock(P1 p1, P2 p2) : Production(p1, p2), chamouMetodo(false) {}
-//
-//	template <class P1, class P2, class P3>
-//	Mock(P1 p1, P2 p2, P3 p3) : Production(p1, p2, p3), chamouMetodo(false) {}
-//
-//	template <class P1, class P2, class P3, class P4>
-//	Mock(P1 p1, P2 p2, P3 p3, P4 p4) : Production(p1, p2, p3, p4), chamouMetodo(false) {}
-//
-//
-//	bool chamouMetodo;
-//
-//#define EXPECT(MethodName) void MethodName()	{	chamouMetodo= true;	}
-//
-//};
 
 #endif 

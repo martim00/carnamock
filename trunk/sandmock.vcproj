@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;C:\CTIP\cppunit-light\include&quot;;&quot;$(BOOST_HOME)&quot;"
+				AdditionalIncludeDirectories="&quot;C:\CTIP\cppunit-light\include&quot;"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -179,7 +179,51 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath=".\ActionBuilder.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Any.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Call.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CallAction.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CallMatcher.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CallRegistry.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Macros.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Matcher.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Mock.h"
+				>
+			</File>
+			<File
+				RelativePath=".\no_cref.h"
+				>
+			</File>
+			<File
+				RelativePath=".\NullType.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ValueHolder.h"
 				>
 			</File>
 		</Filter>
