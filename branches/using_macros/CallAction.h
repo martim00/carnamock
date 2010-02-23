@@ -11,9 +11,24 @@ template <class ReturnType= nulltype
 , class Param5=nulltype> 
 class CallAction;
 
+
+//template <class Derived>
+class CallActionBase
+{   
+public:
+   virtual ~CallActionBase() {}
+
+   /*bool AssertType()
+   {
+      return dynamic_cast<Derived::Type*>(this) != NULL;
+   }*/
+};
+
+
 template <class ReturnType>
-class CallAction<ReturnType>
+class CallAction<ReturnType> : public CallActionBase/*<CallAction<ReturnType> >*/
 {
+   //typedef CallAction<ReturnType> Type;
 	ReturnType returns;
 public:
 	ReturnType Execute()
@@ -30,7 +45,7 @@ public:
 };
 
 template <>
-class CallAction<void>
+class CallAction<void> : public CallActionBase
 {
 public:	
 	void Execute()
@@ -40,7 +55,7 @@ public:
 
 
 template <class ReturnType, class Param1>
-class CallAction<ReturnType, Param1>
+class CallAction<ReturnType, Param1> : public CallActionBase
 {
 	ReturnType returns;
 	Matcher<Param1> *matcher;
@@ -68,7 +83,7 @@ public:
 
 
 template <class Param1>
-class CallAction<void, Param1>
+class CallAction<void, Param1> : public CallActionBase
 {
 	Matcher<Param1> *matcher;
 public:	
@@ -91,7 +106,7 @@ public:
 //2 arity
 
 template <class ReturnType, class Param1, class Param2>
-class CallAction<ReturnType, Param1, Param2>
+class CallAction<ReturnType, Param1, Param2> : public CallActionBase
 {
 	ReturnType returns;
 	Matcher<Param1> *matcher1;
@@ -120,7 +135,7 @@ public:
 };
 
 template <class Param1, class Param2>
-class CallAction<void, Param1, Param2>
+class CallAction<void, Param1, Param2> : public CallActionBase
 {
 	Matcher<Param1> *matcher1;
 	Matcher<Param2> *matcher2;
@@ -145,7 +160,7 @@ public:
 //3 arity
 
 template <class ReturnType, class Param1, class Param2, class Param3>
-class CallAction<ReturnType, Param1, Param2, Param3>
+class CallAction<ReturnType, Param1, Param2, Param3> : public CallActionBase
 {
 	ReturnType returns;
 	Matcher<Param1> *matcher1;
@@ -178,7 +193,7 @@ public:
 //4 arity
 
 template <class ReturnType, class Param1, class Param2, class Param3, class Param4>
-class CallAction<ReturnType, Param1, Param2, Param3, Param4>
+class CallAction<ReturnType, Param1, Param2, Param3, Param4> : public CallActionBase
 {
 	ReturnType returns;
 	Matcher<Param1> *matcher1;

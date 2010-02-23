@@ -1,8 +1,12 @@
+#pragma once
 #ifndef INCLUDED_CALLMATCHER_H
 #define INCLUDED_CALLMATCHER_H
 
 #include "NullType.h"
 #include "ValueHolder.h"
+#include "Matcher.h"
+#include <boost/shared_ptr.hpp>
+#include "IRegistry.h"
 
 
 template <class ReturnType=nulltype
@@ -13,11 +17,20 @@ template <class ReturnType=nulltype
 , class Param5=nulltype> 
 class CallMatcher;
 
-template <class ReturnType>
-class CallMatcher<ReturnType>
+template <class Derived>
+class CallMatcherBase
 {
 public:
-	CallMatcher(CallRegistry<ReturnType> &_registry) : registry(_registry) {}
+   typedef boost::shared_ptr<Derived> Ptr;
+   virtual ~CallMatcherBase() {}
+};
+
+
+template <class ReturnType>
+class CallMatcher<ReturnType> : public CallMatcherBase<CallMatcher<ReturnType>>
+{
+public:
+	CallMatcher(IRegistry &_registry) : registry(_registry) {}
 
 	CallMatcher &Times(size_t times)
 	{
@@ -39,30 +52,34 @@ public:
 	}
 
 private:
-	CallRegistry<ReturnType> &registry;
+	IRegistry &registry;
 };
 
 template <class ReturnType, class Param1>
-class CallMatcher<ReturnType, Param1>
+class CallMatcher<ReturnType, Param1> : public CallMatcherBase<CallMatcher<ReturnType, Param1>>
 {
 public:
-	CallMatcher(CallRegistry<ReturnType, Param1> &_registry) : registry(_registry), parameterWasSetted(false) {}
+	CallMatcher(IRegistry &_registry) : registry(_registry), parameterWasSetted(false) {}
 
 	CallMatcher &Times(size_t times)
 	{
 		Call<ReturnType, Param1> *call= NULL;
 		for (unsigned i= 0; i < times; i++) {
 			try {
-				call= registry.GetNextCall();
+				call= dynamic_cast<Call<ReturnType, Param1> *>(registry.GetNextCall());
 				if (parameterWasSetted) {
 					if (*matcher1 != call->GetParam1()) {
-                  std::runtime_error e("expectation falhou. metodo: " + registry.MethodName());
+                  std::runtime_error e(
+                     "Method expectation fail: \nMethod name:" + registry.MethodName() + "\nCause: " + matcher1->DescribeError()
+                  );
 						throw e;
 					}
 					call->Verified(true);
-				}					
+            } else {
+               //TODO: throw exception (WithParams must be setted before)
+            }
 				
-			} catch (std::runtime_error&)
+			} catch (std::runtime_error& )
 			{
 				//todo: setar log no registry para que nao precise verificar no destructor.
 
@@ -89,7 +106,7 @@ public:
 	}
 
 private:
-	CallRegistry<ReturnType, Param1> &registry;
+	IRegistry &registry;
 
 	bool parameterWasSetted;
 	//Param1 &actualParameter;
@@ -100,10 +117,10 @@ private:
 //2 arity
 
 template <class ReturnType, class Param1, class Param2>
-class CallMatcher<ReturnType, Param1, Param2>
+class CallMatcher<ReturnType, Param1, Param2> : public CallMatcherBase<CallMatcher<ReturnType, Param1, Param2>>
 {
 public:
-	CallMatcher(CallRegistry<ReturnType, Param1, Param2> &_registry) 
+	CallMatcher(IRegistry &_registry) 
 		: registry(_registry), parameterWasSetted(false) {}
 
 	CallMatcher &Times(size_t times)
@@ -147,7 +164,7 @@ public:
 	}
 
 private:
-	CallRegistry<ReturnType, Param1, Param2> &registry;
+	IRegistry &registry;
 
 	bool parameterWasSetted;
 	Matcher<Param1> *matcher1;
@@ -158,10 +175,10 @@ private:
 //3 arity
 
 template <class ReturnType, class Param1, class Param2, class Param3>
-class CallMatcher<ReturnType, Param1, Param2, Param3>
+class CallMatcher<ReturnType, Param1, Param2, Param3> : public CallMatcherBase<CallMatcher<ReturnType, Param1, Param2, Param3>>
 {
 public:
-	CallMatcher(CallRegistry<ReturnType, Param1, Param2, Param3> &_registry) 
+	CallMatcher(IRegistry &_registry) 
 		: registry(_registry), parameterWasSetted(false) {}
 
 	CallMatcher &Times(size_t times)
@@ -173,7 +190,7 @@ public:
 				if (parameterWasSetted) {
 					if (*matcher1 == call->GetParam1() && *matcher2 == call->GetParam2() && *matcher3 == call->GetParam3()) 
 					{
-						call->Verified(true);	
+						call->Verified(true);
 					} else {
 						std::runtime_error e("expectation falhou");
 						throw e;
@@ -207,7 +224,7 @@ public:
 	}
 
 private:
-	CallRegistry<ReturnType, Param1, Param2, Param3> &registry;
+	IRegistry &registry;
 
 	bool parameterWasSetted;
 	Matcher<Param1> *matcher1;
@@ -218,10 +235,10 @@ private:
 //4 arity
 
 template <class ReturnType, class Param1, class Param2, class Param3, class Param4>
-class CallMatcher<ReturnType, Param1, Param2, Param3, Param4>
+class CallMatcher<ReturnType, Param1, Param2, Param3, Param4> : public CallMatcherBase<CallMatcher<ReturnType, Param1, Param2, Param3, Param4>>
 {
 public:
-	CallMatcher(CallRegistry<ReturnType, Param1, Param2, Param3, Param4> &_registry) 
+	CallMatcher(IRegistry &_registry) 
 		: registry(_registry), parameterWasSetted(false) {}
 
 	CallMatcher &Times(size_t times)
@@ -271,7 +288,7 @@ public:
 	}
 
 private:
-	CallRegistry<ReturnType, Param1, Param2, Param3, Param4> &registry;
+	IRegistry &registry;
 
 	bool parameterWasSetted;
 	Matcher<Param1> *matcher1;

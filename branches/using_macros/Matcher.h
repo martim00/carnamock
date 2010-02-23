@@ -16,6 +16,14 @@ public:
 	}
 
 	virtual Matcher<T> *Clone()= 0;
+
+   std::string DescribeError()
+   {
+      return description.str();
+   }
+
+protected:
+   std::stringstream description;
 };
 //
 //template <class Type>

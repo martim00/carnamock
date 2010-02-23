@@ -11,7 +11,7 @@ class Any : public Matcher<Type>
 {
 	//typedef typename no_cref<Type>::type T;
 public:
-	bool operator==(const Matcher<Type>::T &type)
+	bool operator==(const typename Matcher<Type>::T &type)
 	{
 		return true;
 	}
@@ -28,21 +28,24 @@ class Equal : public Matcher<Type>
 {
 //	typedef typename no_cref<Type>::type T;
 
-	Matcher<Type>::T value;
+	typename Matcher<Type>::T value;
 public:
 	virtual ~Equal() {
 	}
-	Equal(Matcher<Type>::T _value) : value(_value) {}
-	bool operator==(const Matcher<Type>::T &_value)
+	Equal(typename Matcher<Type>::T _value) : value(_value) {}
+	bool operator==(const typename Matcher<Type>::T &_value)
 	{
-		return value == _value;
+      bool result= value == _value;
+      if (!result) {
+         description << "Expect value " << value << " is not equal to actual " << _value << std::endl;
+      }
+		return result;
 	}
 
 	virtual Matcher<typename Matcher<Type>::T> *Clone()
 	{
-		return new Equal<Type>(value);
+		return new Equal<typename Matcher<Type>::T>(value);
 	}
-
 };
 //
 //template <class Type>

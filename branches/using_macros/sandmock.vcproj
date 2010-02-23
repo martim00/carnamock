@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;C:\CTIP\cppunit-light\include&quot;"
+				AdditionalIncludeDirectories="&quot;C:\CTIP\cppunit-light\include&quot;;$(BOOST_HOME)"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -200,6 +200,10 @@
 			</File>
 			<File
 				RelativePath=".\CallRegistry.h"
+				>
+			</File>
+			<File
+				RelativePath=".\IRegistry.h"
 				>
 			</File>
 			<File

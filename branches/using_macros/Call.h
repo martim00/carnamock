@@ -14,6 +14,7 @@ class Call;
 class ICall
 {
 public:	
+   virtual ~ICall() {}
 	ICall() : verified(false) {}
 	bool Verified() const
 	{

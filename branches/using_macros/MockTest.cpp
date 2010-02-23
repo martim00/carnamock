@@ -5,6 +5,7 @@
 #include "Mock.h"
 #include "Macros.h"
 #include "Any.h"
+#include <windows.h>
 
 struct ProductionClass {
 	virtual int foo()= 0;
@@ -21,7 +22,7 @@ struct ProductionClass {
 	virtual void metodoSemRetornoComDoisParam(char*, int)= 0;
 };
 
-struct MockClass : public ProductionClass, public MockMixin
+struct MockClass : public ProductionClass/*, public MockMixin*/
 {
 public:
 	virtual ~MockClass() {}
@@ -61,11 +62,11 @@ class MockTest : public CPPUNIT_NS::TestFixture
 	CPPUNIT_TEST( testMockParamString );
 	CPPUNIT_TEST( testMockParamPtr );
 	CPPUNIT_TEST( testMockParamRef );
-	CPPUNIT_TEST( testMockPermiteDefinirAcoesParaMetodos );
+	/*CPPUNIT_TEST( testMockPermiteDefinirAcoesParaMetodos );
 	CPPUNIT_TEST( testDefinirAcoesComPlaceHolders );
 	CPPUNIT_TEST( testMetodoComDoisParametros );
 	CPPUNIT_TEST( testMetodosSemRetorno );
-   CPPUNIT_TEST( testMetodoSemRetornoUmParametro );
+   CPPUNIT_TEST( testMetodoSemRetornoUmParametro );*/
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -91,11 +92,13 @@ protected:
 
 	void testMockFalhaSeExpectationsNaoForemRealizadas()
 	{
-		MockClass mock;	
+		MockClass mock;
 
       try
       {    
-         mock.Expect<int>("foo")->Times(1);
+         EXPECT(mock, foo)->Times(1);
+
+         //mock.Expect<int>("foo")->Times(1);
          CPPUNIT_ASSERT(false);
       }catch (std::runtime_error&)
       {
@@ -124,12 +127,11 @@ protected:
 
 	void testMockNaoFalhaSeExpectationsForemRealizadas()
 	{
-		MockClass mock;		
+		MockClass mock;
 		mock.foo();
 
-		CPPUNIT_ASSERT_NO_THROW(mock.Expect<int>("foo")->Times(1));
-
-		//CPPUNIT_ASSERT_NO_THROW(mock.Verify());
+      CPPUNIT_ASSERT_NO_THROW(EXPECT(mock, foo)->Times(1));
+		//CPPUNIT_ASSERT_NO_THROW(mock.Expect<int>("foo")->Times(1));
 	}
 
 	void testMockPermiteMetodosComUmParametro()
@@ -144,14 +146,16 @@ protected:
 
 	void testMockGuardaArgumentosPassado()
 	{
-		MockClass mock;
+		/*MockClass mock;
 		
 		mock.param1(1);
 
-		int p1= mock.GetRegistry<int, int>()["param1"]->GetCalls()[0]->GetParam1();
+		int p1= mock.carnaparam1.GetCalls()[0]->GetParam1();
 		CPPUNIT_ASSERT_EQUAL(1, p1);
 
-		mock.Expect<int, int>("param1")->WithParams(Equal<int>(1)).Times(1);
+      EXPECT(mock, param1)->WithParams(Equal<int>(1))->Times(1);*/
+
+		//mock.Expect<int, int>("param1")->WithParams(Equal<int>(1)).Times(1);
 	}
 
 	void testMockPermiteExpectationsNosParametrosDoMetodo()
@@ -160,7 +164,8 @@ protected:
 		mock.param1(1);
 
 		try {
-			mock.Expect<int,int>("param1")->WithParams(Equal<int>(1)).Times(1);
+         EXPECT(mock, param1)->WithParams(Equal<int>(1)).Times(1);
+			//mock.Expect<int,int>("param1")->WithParams(Equal<int>(1)).Times(1);
 			CPPUNIT_ASSERT(true);
 		} catch (std::runtime_error&)
 		{
@@ -174,7 +179,8 @@ protected:
 		mock.param1(1);
 
 		try {
-			mock.Expect<int,int>("param1")->WithParams(Equal<int>(5)).Times(1);
+         EXPECT(mock, param1)->WithParams(Equal<int>(5)).Times(1);
+			//mock.Expect<int,int>("param1")->WithParams(Equal<int>(5)).Times(1);
 
 			CPPUNIT_ASSERT(false);
 		} catch (std::runtime_error &)
@@ -188,7 +194,8 @@ protected:
 		MockClass mock;
 		mock.param1Double(20.2);
 
-		mock.Expect<int, double>("param1Double")->WithParams(Equal<double>(20.2)).Times(1);
+      EXPECT(mock, param1Double)->WithParams(Equal<double>(20.2)).Times(1);
+		//mock.Expect<int, double>("param1Double")->WithParams(Equal<double>(20.2)).Times(1);
 	}
 
 	void testMockParamString()
@@ -196,7 +203,8 @@ protected:
 		MockClass mock;
 		mock.param1String("mock");
 
-		mock.Expect<int, const std::string&>("param1String")->WithParams(Equal<std::string>("mock")).Times(1);
+      EXPECT(mock, param1String)->WithParams(Equal<std::string>("mock")).Times(1);
+		/*mock.Expect<int, const std::string&>("param1String")->WithParams(Equal<std::string>("mock")).Times(1);*/
 	}
 
 	void testMockParamPtr()
@@ -205,7 +213,8 @@ protected:
 		MockClass mock;
 		mock.param1Ptr(ptr);
 
-		mock.Expect<int, int*>("param1Ptr")->WithParams(Equal<int*>(ptr)).Times(1);
+      EXPECT(mock, param1Ptr)->WithParams(Equal<int*>(ptr)).Times(1);
+		/*mock.Expect<int, int*>("param1Ptr")->WithParams(Equal<int*>(ptr)).Times(1);*/
 	}
 
 	void testMockParamRef()
@@ -214,72 +223,108 @@ protected:
 		MockClass mock;
 		mock.param1Ref(ref);
 
-		mock.Expect<int, int&>("param1Ref")->WithParams(Equal<int>(ref)).Times(1);
+      EXPECT(mock, param1Ref)->WithParams(Equal<int>(ref)).Times(1);
+		/*mock.Expect<int, int&>("param1Ref")->WithParams(Equal<int>(ref)).Times(1);*/
 	}
 
-	void testMockPermiteDefinirAcoesParaMetodos()
-	{
-		int a= 10;
-		int *b= new int(20);
-		MockClass mock;
-		mock.WhenCall<int, double>("param1Double")->WithParam(Equal<double>(20.1)).ThenReturn(10);
-		mock.WhenCall<int*, int&>("param1RetornoPtr")->WithParam(Equal<int>(a)).ThenReturn(b);
+//	void testMockPermiteDefinirAcoesParaMetodos()
+//	{
+//		int a= 10;
+//		int *b= new int(20);
+//		MockClass mock;
+//		mock.WhenCall<int, double>("param1Double")->WithParam(Equal<double>(20.1)).ThenReturn(10);
+//		mock.WhenCall<int*, int&>("param1RetornoPtr")->WithParam(Equal<int>(a)).ThenReturn(b);
+//
+//		//mock.When("param1Double")->WithParam(_)->ThenExecute(qualquerFuncao());
+//
+//		CPPUNIT_ASSERT_EQUAL(10, mock.param1Double(20.1));
+//		CPPUNIT_ASSERT_EQUAL(20, *mock.param1RetornoPtr(a));
+//
+//		delete b;
+//
+//		//CPPUNIT_ASSERT_EQUAL(10, mock.param1Double(20.1));
+//	}
+//
+//	void testDefinirAcoesComPlaceHolders()
+//	{
+//		MockClass mock;
+//		mock.WhenCall<int, double>("param1Double")->WithParam(Any<double>()).ThenReturn(10);
+//
+////		mock.WhenCall<int, int>("param1")->WithParam(LessThan<int>(10)).ThenReturn(2);
+//
+//		CPPUNIT_ASSERT_EQUAL(10, mock.param1Double(1));
+//		CPPUNIT_ASSERT_EQUAL(10, mock.param1Double(12));
+//		CPPUNIT_ASSERT_EQUAL(10, mock.param1Double(1282828));
+//
+//		/*CPPUNIT_ASSERT_EQUAL(2, mock.param1(1));
+//		CPPUNIT_ASSERT_EQUAL(2, mock.param1(9));*/
+//	}
+//
+//	void testMetodoComDoisParametros()		
+//	{
+//		MockClass mock;
+//
+//		int a= 10;
+//
+//		mock.WhenCall<double, int&, const std::string&>("param2")
+//			->WithParam(Equal<int>(10), Equal<std::string>("ola"))
+//			.ThenReturn(10.2);
+//		
+//		const std::string ola("ola");		
+//
+//		CPPUNIT_ASSERT_DOUBLES_EQUAL(10.2, mock.param2(a, ola), 0.01);
+//	}
+//
+//	void testMetodosSemRetorno()
+//	{
+//		MockClass mock;
+//		mock.metodoSemRetornoSemParam();
+//
+//		mock.Expect<void>("metodoSemRetornoSemParam")->Times(1);
+//	}
+//
+//   void testMetodoSemRetornoUmParametro()
+//   {
+//      int a= 1;
+//      MockClass mock;
+//      mock.metodoSemRetornoComUmParam(a);
+//
+//      mock.Expect<void, int&>("metodoSemRetornoComUmParam")->WithParams(Equal<int>(a)).Times(1);
+//   }
 
-		//mock.When("param1Double")->WithParam(_)->ThenExecute(qualquerFuncao());
+   template <class Derived>
+   struct Base {
+      virtual ~Base() {
 
-		CPPUNIT_ASSERT_EQUAL(10, mock.param1Double(20.1));
-		CPPUNIT_ASSERT_EQUAL(20, *mock.param1RetornoPtr(a));
+      }
 
-		delete b;
+      bool AssertType()
+      {
+         return (dynamic_cast<Derived::Type*>(this) != NULL);
+      }
+   };
 
-		//CPPUNIT_ASSERT_EQUAL(10, mock.param1Double(20.1));
-	}
+   template <class ReturnType= nulltype
+      , class Param1= nulltype
+      , class Param2= nulltype
+      , class Param3=nulltype
+      , class Param4=nulltype
+      , class Param5=nulltype> 
+   class Derived;
+   
 
-	void testDefinirAcoesComPlaceHolders()
-	{
-		MockClass mock;
-		mock.WhenCall<int, double>("param1Double")->WithParam(Any<double>()).ThenReturn(10);
-
-//		mock.WhenCall<int, int>("param1")->WithParam(LessThan<int>(10)).ThenReturn(2);
-
-		CPPUNIT_ASSERT_EQUAL(10, mock.param1Double(1));
-		CPPUNIT_ASSERT_EQUAL(10, mock.param1Double(12));
-		CPPUNIT_ASSERT_EQUAL(10, mock.param1Double(1282828));
-
-		/*CPPUNIT_ASSERT_EQUAL(2, mock.param1(1));
-		CPPUNIT_ASSERT_EQUAL(2, mock.param1(9));*/
-	}
-
-	void testMetodoComDoisParametros()		
-	{
-		MockClass mock;
-
-		int a= 10;
-
-		mock.WhenCall<double, int&, const std::string&>("param2")
-			->WithParam(Equal<int>(10), Equal<std::string>("ola"))
-			.ThenReturn(10.2);
-		
-		const std::string ola("ola");		
-
-		CPPUNIT_ASSERT_DOUBLES_EQUAL(10.2, mock.param2(a, ola), 0.01);
-	}
-
-	void testMetodosSemRetorno()
-	{
-		MockClass mock;
-		mock.metodoSemRetornoSemParam();
-
-		mock.Expect<void>("metodoSemRetornoSemParam")->Times(1);
-	}
-
-   void testMetodoSemRetornoUmParametro()
+   template <class ReturnType>
+   struct Derived<ReturnType> : public Base<Derived<ReturnType> > 
    {
-      int a= 1;
-      MockClass mock;
-      mock.metodoSemRetornoComUmParam(a);
+      typedef Derived<ReturnType> Type;
+   };
 
-      mock.Expect<void, int&>("metodoSemRetornoComUmParam")->WithParams(Equal<int>(a)).Times(1);
+   void test()
+   {
+      Base<Derived<int>> *b= new Derived<int>();
+      Derived<int> *d= dynamic_cast<Derived<int>*>(b);      
+
+      b->AssertType();
    }
 
 
