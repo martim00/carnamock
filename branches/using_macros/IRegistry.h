@@ -12,11 +12,11 @@ class CallActionBase;
 class IRegistry {
 public:
    virtual ~IRegistry() {
-      //MockMixin::GetRegistry<ReturnType>().erase(methodName);
       if (!AllCallsVerified() && verifyOnDestructor)
       {
-			result.reset(new TimesIncorrect(TimesVerified(), GetTimesCalled()));         
+			result.reset(new TimesIncorrect(TimesVerified(), GetTimesCalled()));
 		} 
+
 		if (result.get()) {
 			std::stringstream ss;
 			ss << "Nem todas as expectations do metodo " << methodName << " foram aceitas" << std::endl;
@@ -25,6 +25,8 @@ public:
 			std::runtime_error e(ss.str());
          throw e;
 		}
+
+      //TODO: limpar estruturas...
 
    }
    IRegistry() : actualCall(0), verifyOnDestructor(true), timesVerified(0){}
@@ -73,8 +75,6 @@ public:
          return effectiveCalls[actualCall++];
       }
    }
-
-	//enum ResultType { NO_VERIFICATION, TIMES_INCORRECT, RIGHT_VERIFIED, INCORRECT_PARAMETERS } result;
 
 	size_t TimesVerified() { return timesVerified; }
 

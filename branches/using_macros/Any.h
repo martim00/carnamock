@@ -32,7 +32,7 @@ class Equal : public Matcher<Type>
 public:
 	virtual ~Equal() {
 	}
-	Equal(typename Matcher<Type>::T _value) : value(_value) {}
+	explicit Equal(typename Matcher<Type>::T _value) : value(_value) {}
 	bool operator==(const typename Matcher<Type>::T &_value)
 	{
       bool result= value == _value;

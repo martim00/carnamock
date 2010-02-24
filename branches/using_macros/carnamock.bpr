@@ -30,7 +30,7 @@
     <USERDEFINES value="_DEBUG"/>
     <SYSDEFINES value="NO_STRICT;_NO_VCL;_RTLDLL;USEPACKAGES"/>
     <MAINSOURCE value="carnamock.bpf"/>
-    <INCLUDEPATH value="e:\user\Cad_10_1\carnamock;$(BCB)\include;$(BCB)\include\vcl;$(CPPUNIT_HOME)/include"/>
+    <INCLUDEPATH value="e:\user\Cad_10_1\carnamock;$(BCB)\include;$(BCB)\include\vcl;$(CPPUNIT_HOME)/include;$(BOOST_HOME)"/>
     <LIBPATH value="$(BCB)\Projects\Bpl;$(BCB)\Projects\Lib;e:\user\Cad_10_1\carnamock;$(BCB)\lib\obj;$(BCB)\lib"/>
     <WARNINGS value="-w-par"/>
     <OTHERFILES value=""/>
@@ -88,14 +88,22 @@ ProductName=
 ProductVersion=1.0.0.0
 Comments=
 
+[Excluded Packages]
+C:\Arquivos de programas\Borland\CBuilder6\Projects\Bpl\PKIECTRLc6.bpl=ImageEn Controls
+C:\Arquivos de programas\Borland\CBuilder6\Projects\Bpl\PKIEDBc6.bpl=PKIEDBc6
+C:\Arquivos de programas\Borland\CBuilder6\Bin\dcltee60.bpl=TeeChart Components
+c:\arquivos de programas\borland\cbuilder6\Bin\dcltqr60.bpl=TeeChart for QuickReport Components
+
 [HistoryLists\hlIncludePath]
-Count=2
-Item0=e:\user\Cad_10_1\carnamock;$(BCB)\include;$(BCB)\include\vcl;$(CPPUNIT_HOME)/include
-Item1=e:\user\Cad_10_1\carnamock;$(BCB)\include;$(BCB)\include\vcl
+Count=3
+Item0=e:\user\Cad_10_1\carnamock;$(BCB)\include;$(BCB)\include\vcl;$(CPPUNIT_HOME)/include;$(BOOST_HOME)
+Item1=e:\user\Cad_10_1\carnamock;$(BCB)\include;$(BCB)\include\vcl;$(CPPUNIT_HOME)/include
+Item2=e:\user\Cad_10_1\carnamock;$(BCB)\include;$(BCB)\include\vcl
 
 [HistoryLists\hlLibraryPath]
-Count=1
-Item0=e:\user\Cad_10_1\carnamock;$(BCB)\lib\obj;$(BCB)\lib
+Count=2
+Item0=$(BCB)\Projects\Bpl;$(BCB)\Projects\Lib;e:\user\Cad_10_1\carnamock;$(BCB)\lib\obj;$(BCB)\lib
+Item1=e:\user\Cad_10_1\carnamock;$(BCB)\lib\obj;$(BCB)\lib
 
 [HistoryLists\hlDebugSourcePath]
 Count=1

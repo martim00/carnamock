@@ -6,6 +6,8 @@
 #include "NullType.h"
 #include "CallAction.h"
 #include "CallMatcher.h"
+#include "ActionBuilder.h"
+#include "TypeTraits.h"
 
 #include "IRegistry.h"
 #include "no_cref.h"
@@ -19,110 +21,67 @@ template <class ReturnType=nulltype
 class CallRegistry;
 
 template <class ReturnType>
-class CallRegistry<ReturnType> : public IRegistry/*<CallRegistry<ReturnType>>*/
+class CallRegistry<ReturnType> : public IRegistry
 {
 public:
    typedef CallRegistry<ReturnType> Type;
-   typedef Call<ReturnType> CallType;   
+   typedef Call<ReturnType> CallType;
+   typedef carnamock::is_void<ReturnType> IsVoidReturn;
 	
-	virtual ~CallRegistry()
-	{
-		/*MockMixin::GetRegistry<ReturnType>().erase(methodName);
-		if (!AllCallsVerified())
-		{
-			std::runtime_error e("Nem todas as expectations do metodo "+methodName+" foram aceitas");
-			throw e;
-		}*/
-	}
-
-	//bool AllCallsVerified()
-	//{
-	//	if (effectiveCalls.empty()) return true;
-	//	return (effectiveCalls[effectiveCalls.size()-1]->Verified());
-	//}
-
-	/*void AddCall()
-	{
-		Call<ReturnType> *call= new Call<ReturnType>();
-		effectiveCalls.push_back(call);
-	}*/   
+	virtual ~CallRegistry()	{}
 
 	ReturnType Execute()
 	{
       this->AddCall(new Call<ReturnType>());
       if (!actions.empty()) {
          CallAction<ReturnType> *actionDerived= dynamic_cast<CallAction<ReturnType>*>(actions[0]);
-         return actionDerived->Execute();
+         if (!IsVoidReturn::result) {
+            return actionDerived->Execute();
+         } else {
+            actionDerived->Execute();
+         }
       }
-      //TODO: logar isso..
-      return ReturnType();
+
+      if (!IsVoidReturn::result) {
+         return ReturnType();
+      }
+      /*std::runtime_error e("You must set some action");
+      throw e;*/
+      
+      //return ReturnType();
 	}
 
-   typename CallMatcherBase<CallMatcher<ReturnType>>::Ptr Expect()
+   typename CallMatcherBase<CallMatcher<ReturnType> >::Ptr Expect()
    {
       return CallMatcherBase<CallMatcher<ReturnType> >::Ptr(new CallMatcher<ReturnType>(*this));
    }
 
-	/*Call<ReturnType> *GetNextCall()
-	{
-		if (effectiveCalls.size() <= actualCall) {
-			std::runtime_error e("Nao ha mais calls");
-			throw e;
-		}
-		else {
-			return effectiveCalls[actualCall++];
-		}
-	}*/
-
-private:
-	//std::vector<Call<ReturnType>* > effectiveCalls;
-   //CallAction<ReturnType>* action;	
+   typename ActionBuilderBase<ActionBuilder<ReturnType> >::Ptr WhenCall()
+   {
+      return ActionBuilderBase<ActionBuilder<ReturnType> >::Ptr(new ActionBuilder<ReturnType>(*this));
+   }  
 };
 
 template <class ReturnType, class P1>
-class CallRegistry<ReturnType, P1> : public IRegistry/*<CallRegistry<ReturnType, Param1>>*/
+class CallRegistry<ReturnType, P1> : public IRegistry
 {
 public:
    typedef typename no_cref<P1>::type Param1;
    typedef CallRegistry<ReturnType, Param1> Type;
    typedef Call<ReturnType, Param1> CallType;
+   typedef carnamock::is_void<ReturnType> IsVoidReturn;
    
-
-   
-	virtual ~CallRegistry() 
-   {
-		/*MockMixin::GetRegistry<ReturnType, Param1>().erase(methodName);
-
-		if (!AllCallsVerified() && verifyOnDestructor)
-		{
-			std::runtime_error e("Nem todas as expectations do metodo "+methodName+" foram aceitas");
-			throw e;
-		}*/
-	}
+   virtual ~CallRegistry() {}
 
    typename CallMatcherBase<CallMatcher<ReturnType, Param1> >::Ptr Expect()
    {
       return CallMatcherBase<CallMatcher<ReturnType, Param1> >::Ptr(new CallMatcher<ReturnType, Param1>(*this));
    }
 
-	/*void AddAction(CallAction<ReturnType, Param1> *action)
-	{	
-		actions.push_back(action);
-	}*/
-
-	/*bool AllCallsVerified()
-	{
-		if (effectiveCalls.empty()) return true;
-		return (effectiveCalls[effectiveCalls.size()-1]->Verified());
-	}*/
-
-	//Call<ReturnType, Param1> &AddCall(Param1 p1)
-	//{
-	//	Call<ReturnType, Param1> *call= new Call<ReturnType, Param1>(p1);
-	//	
-	//	effectiveCalls.push_back(call);
-	//	return *call;
-	//}   
+   typename ActionBuilderBase<ActionBuilder<ReturnType, Param1> >::Ptr WhenCall()
+   {
+      return ActionBuilderBase<ActionBuilder<ReturnType, Param1> >::Ptr(new ActionBuilder<ReturnType, Param1>(*this));
+   }
 
 	ReturnType Execute(Param1 p1)
 	{
@@ -133,169 +92,86 @@ public:
 
 			if (action->KnowsThat(p1)) {
 				GetNextCall()->Verified(true);
-				return action->Execute(p1);
+            if (!IsVoidReturn::result) 
+				   return action->Execute(p1);
+            else 
+               action->Execute(p1);
 			}
 			continue;
 		}
-		return ReturnType();
+      if (!IsVoidReturn::result)
+		   return ReturnType();
 	}
-	/*std::vector<Call<ReturnType, Param1>* > &GetCalls()
-	{
-		return effectiveCalls;
-	}
-
-	Call<ReturnType, Param1> *GetNextCall()
-	{
-		if (effectiveCalls.size() <= actualCall) {
-			std::runtime_error e("Nao ha mais calls");
-			throw e;
-		}
-		else {
-			return effectiveCalls[actualCall++];
-		}
-	}	
-   size_t GetTimesCalled() { return effectiveCalls.size(); }
-private:
-	std::vector<Call<ReturnType, Param1>* > effectiveCalls;*/
-	//std::vector<CallAction<ReturnType, Param1>* > actions;
-
-	//size_t actualCall;
-	/*bool verifyOnDestructor;*/
 };
 
 //2 arity
 
-template <class ReturnType, class Param1, class Param2>
-class CallRegistry<ReturnType, Param1, Param2> : public IRegistry/*<CallRegistry<ReturnType, Param1, Param2>>*/
+template <class ReturnType, class P1, class P2>
+class CallRegistry<ReturnType, P1, P2> : public IRegistry
 {
 public:
+   typedef typename no_cref<P1>::type Param1;
+   typedef typename no_cref<P2>::type Param2;
+
    typedef CallRegistry<ReturnType, Param1, Param2> Type;
    typedef Call<ReturnType, Param1, Param2> CallType;
+   typedef carnamock::is_void<ReturnType> IsVoidReturn;
 
-	virtual ~CallRegistry()
-	{
-	/*	MockMixin::GetRegistry<ReturnType, Param1, Param2>().erase(methodName);
-
-		if (!AllCallsVerified() && verifyOnDestructor)
-		{
-         std::stringstream ss;
-         ss << "Nem todas as expectations do metodo " << methodName <<  "foram aceitas\n";
-			std::runtime_error e(ss.str());
-			throw e;
-		}*/
-	}
+	virtual ~CallRegistry() {}
 
    typename CallMatcherBase<CallMatcher<ReturnType, Param1, Param2> >::Ptr Expect()
    {
-      return CallMatcherBase<CallMatcher<ReturnType, Param1, Param2> >::Ptr(new CallMatcher<ReturnType, Param1, Param2>);
+      return CallMatcherBase<CallMatcher<ReturnType, Param1, Param2> >::Ptr(new CallMatcher<ReturnType, Param1, Param2>(*this));
    }
 
-	/*void AddAction(CallAction<ReturnType, Param1, Param2> *action)
-	{	
-		actions.push_back(action);
-	}
-
-	bool AllCallsVerified()
-	{
-		if (effectiveCalls.empty()) return true;
-		return (effectiveCalls[effectiveCalls.size()-1]->Verified());
-	}
-
-	Call<ReturnType, Param1, Param2> &AddCall(Param1 p1, Param2 p2)
-	{
-		Call<ReturnType, Param1, Param2> *call= new Call<ReturnType, Param1, Param2>(p1, p2);
-		
-		effectiveCalls.push_back(call);
-		return *call;
-	}*/
+   typename ActionBuilderBase<ActionBuilder<ReturnType, Param1, Param2> >::Ptr WhenCall()
+   {
+      return ActionBuilderBase<ActionBuilder<ReturnType, Param1, Param2> >::Ptr(new ActionBuilder<ReturnType, Param1, Param2>(*this));
+   }
 
    ReturnType Execute(Param1 p1, Param2 p2)
 	{
       this->AddCall(new Call<ReturnType, Param1, Param2>(p1, p2));
 		for (unsigned i= 0; i < actions.size(); i++)
 		{
-			CallAction<ReturnType, Param1, Param2> *action= dynamic_cast<CallAction<ReturnType, Param1, Param2>*>(actions[i]);
+			CallAction<ReturnType, Param1, Param2> *action= 
+            dynamic_cast<CallAction<ReturnType, Param1, Param2>*>(actions[i]);
 
 			if (action->KnowsThat(p1, p2)) {
-				GetNextCall()->Verified(true);
-				return action->Execute(p1, p2);
+				//GetNextCall()->Verified(true);
+            if (!IsVoidReturn::result)
+				   return action->Execute(p1, p2);
+            else 
+               action->Execute(p1, p2);
 			}
 			continue;
 		}
-		return ReturnType();
+      if (!IsVoidReturn::result)
+		   return ReturnType();
 	}
-	/*std::vector<Call<ReturnType, Param1, Param2>* > &GetCalls()
-	{
-		return effectiveCalls;
-	}
-
-	Call<ReturnType, Param1, Param2> *GetNextCall()
-	{
-		if (effectiveCalls.size() <= actualCall) {
-			std::runtime_error e("Nao ha mais calls");
-			throw e;
-		}
-		else {
-			return effectiveCalls[actualCall++];
-		}
-	}	
-   size_t GetTimesCalled() { return effectiveCalls.size(); }
-private:
-	std::vector<Call<ReturnType, Param1, Param2>* > effectiveCalls;*/
-	//std::vector<CallAction<ReturnType, Param1, Param2>* > actions;
-
-	/*size_t actualCall;
-	bool verifyOnDestructor;*/
 };
 
 //3 arity
 
 template <class ReturnType, class Param1, class Param2, class Param3>
-class CallRegistry<ReturnType, Param1, Param2, Param3> : public IRegistry/*<CallRegistry<ReturnType, Param1, Param2, Param3>>*/
+class CallRegistry<ReturnType, Param1, Param2, Param3> : public IRegistry
 {
 public:
    typedef CallRegistry<ReturnType, Param1, Param2, Param3> Type;
    typedef Call<ReturnType, Param1, Param2, Param3> CallType;
+   typedef carnamock::is_void<ReturnType> IsVoidReturn;
 
-	virtual ~CallRegistry()
-	{
-		/*MockMixin::GetRegistry<ReturnType, Param1, Param2, Param3>().erase(methodName);
-
-		if (!AllCallsVerified() && verifyOnDestructor)
-		{
-         std::runtime_error e("Nem todas as expectations do metodo "+methodName+" foram aceitas");
-			throw e;
-		}*/
-	}
+	virtual ~CallRegistry() {}
 
    typename CallMatcherBase<CallMatcher<ReturnType, Param1, Param2, Param3> >::Ptr Expect()
    {
       return CallMatcherBase<CallMatcher<ReturnType, Param1, Param2, Param3> >::Ptr(new CallMatcher<ReturnType, Param1, Param2, Param3>);
    }
 
-	/*void AddAction(CallAction<ReturnType, Param1, Param2, Param3> *action)
-	{	
-		actions.push_back(action);
-	}*/
-
-	/*void VerifyOnDestructor(bool verify)
-	{
-		verifyOnDestructor= verify;
-	}*/
-
-	/*bool AllCallsVerified()
-	{
-		if (effectiveCalls.empty()) return true;
-		return (effectiveCalls[effectiveCalls.size()-1]->Verified());
-	}
-
-	Call<ReturnType, Param1, Param2, Param3> &AddCall(Param1 p1, Param2 p2, Param3 p3)
-	{
-		Call<ReturnType, Param1, Param2, Param3> *call= new Call<ReturnType, Param1, Param2, Param3>(p1, p2, p3);
-		
-		effectiveCalls.push_back(call);
-		return *call;
-	}*/
+   typename ActionBuilderBase<ActionBuilder<ReturnType, Param1, Param2, Param3> >::Ptr WhenCall()
+   {
+      return ActionBuilderBase<ActionBuilder<ReturnType, Param1, Param2, Param3> >::Ptr(new ActionBuilder<ReturnType, Param1, Param2, Param3>(*this));
+   }
 
    ReturnType Execute(Param1 p1, Param2 p2, Param3 p3)
 	{
@@ -307,85 +183,39 @@ public:
 
 			if (action->KnowsThat(p1, p2, p3)) {
 				GetNextCall()->Verified(true);
-				return action->Execute(p1, p2, p3);
+            if (!IsVoidReturn::result)
+				   return action->Execute(p1, p2, p3);
+            else 
+               action->Execute(p1, p2, p3);
 			}
 			continue;
 		}
-		return ReturnType();
-	}
-	/*std::vector<Call<ReturnType, Param1, Param2, Param3>* > &GetCalls()
-	{
-		return effectiveCalls;
-	}
-
-	Call<ReturnType, Param1, Param2, Param3> *GetNextCall()
-	{
-		if (effectiveCalls.size() <= actualCall) {
-			std::runtime_error e("Nao ha mais calls");
-			throw e;
-		}
-		else {
-			return effectiveCalls[actualCall++];
-		}
+      if (!IsVoidReturn::result)
+		   return ReturnType();
 	}	
-   size_t GetTimesCalled() { return effectiveCalls.size(); }
-private:
-	std::vector<Call<ReturnType, Param1, Param2, Param3>* > effectiveCalls;*/
-	//std::vector<CallAction<ReturnType, Param1, Param2, Param3>* > actions;
-
-	/*size_t actualCall;
-	bool verifyOnDestructor;*/
 };
 
 //4 arity
 
 template <class ReturnType, class Param1, class Param2, class Param3, class Param4>
-class CallRegistry<ReturnType, Param1, Param2, Param3, Param4> : public IRegistry/*<CallRegistry<ReturnType, Param1, Param2, Param3, Param4>>*/
+class CallRegistry<ReturnType, Param1, Param2, Param3, Param4> : public IRegistry
 {
 public:
    typedef CallRegistry<ReturnType, Param1, Param2, Param3, Param4> Type;
    typedef Call<ReturnType, Param1, Param2, Param3, Param4> CallType;
+   typedef carnamock::is_void<ReturnType> IsVoidReturn;
 
-	virtual ~CallRegistry()
-	{
-		/*MockMixin::GetRegistry<ReturnType, Param1, Param2, Param3, Param4>().erase(methodName);
-
-		if (!AllCallsVerified() && verifyOnDestructor)
-		{
-			std::runtime_error e("Nem todas as expectations do metodo "+methodName+" foram aceitas");
-			throw e;
-		}*/
-	}
+	virtual ~CallRegistry() {}
 
    typename CallMatcherBase<CallMatcher<ReturnType, Param1, Param2, Param3, Param4> >::Ptr Expect()
    {
       return CallMatcherBase<CallMatcher<ReturnType, Param1, Param2, Param3, Param4> >::Ptr(new CallMatcher<ReturnType, Param1, Param2, Param3, Param4>);
    }
 
-	/*void AddAction(CallAction<ReturnType, Param1, Param2, Param3, Param4> *action)
-	{	
-		actions.push_back(action);
-	}
-
-	void VerifyOnDestructor(bool verify)
-	{
-		verifyOnDestructor= verify;
-	}*/
-
-	/*bool AllCallsVerified()
-	{
-		if (effectiveCalls.empty()) return true;
-		return (effectiveCalls[effectiveCalls.size()-1]->Verified());
-	}
-
-	Call<ReturnType, Param1, Param2, Param3, Param4> &AddCall(Param1 p1, Param2 p2, Param3 p3, Param4 p4)
-	{
-		Call<ReturnType, Param1, Param2, Param3, Param4> *call= new Call<ReturnType, Param1, Param2, Param3, Param4>(p1, p2, p3, p4);
-		
-		effectiveCalls.push_back(call);
-		return *call;
-	}*/
-
+   typename ActionBuilderBase<ActionBuilder<ReturnType, Param1, Param2, Param3, Param4> >::Ptr WhenCall()
+   {
+      return ActionBuilderBase<ActionBuilder<ReturnType, Param1, Param2, Param3, Param4> >::Ptr(new ActionBuilder<ReturnType, Param1, Param2, Param3, Param4>(*this));
+   }
 
    ReturnType Execute(Param1 p1, Param2 p2, Param3 p3, Param4 p4)
    {
@@ -396,34 +226,16 @@ public:
 
 			if (action->KnowsThat(p1, p2, p3, p4)) {
 				GetNextCall()->Verified(true);
-				return action->Execute(p1, p2, p3, p4);
+            if (!IsVoidReturn::result)
+				   return action->Execute(p1, p2, p3, p4);
+            else 
+               action->Execute(p1, p2, p3, p4);
 			}
 			continue;
 		}
-		return ReturnType();
-	}
-	/*std::vector<Call<ReturnType, Param1, Param2, Param3, Param4>* > &GetCalls()
-	{
-		return effectiveCalls;
-	}
-
-	Call<ReturnType, Param1, Param2, Param3, Param4> *GetNextCall()
-	{
-		if (effectiveCalls.size() <= actualCall) {
-			std::runtime_error e("Nao ha mais calls");
-			throw e;
-		}
-		else {
-			return effectiveCalls[actualCall++];
-		}
+      if (!IsVoidReturn::result)
+		   return ReturnType();
 	}	
-   size_t GetTimesCalled() { return effectiveCalls.size(); }
-private:
-	std::vector<Call<ReturnType, Param1, Param2, Param3, Param4>* > effectiveCalls;*/
-	//std::vector<CallAction<ReturnType, Param1, Param2, Param3, Param4>* > actions;
-
-	/*size_t actualCall;
-	bool verifyOnDestructor;*/
 };
 //
 ////5 arity
