@@ -12,10 +12,25 @@ class CallActionBase;
 class IRegistry {
 public:
    virtual ~IRegistry() {
-      if (!AllCallsVerified() && verifyOnDestructor)
+   
+      if (effectiveCalls.size() != expectations.size())
+      {
+         result.reset(new TimesIncorrect(expectations.size(), GetTimesCalled()));
+      } else {
+
+         for (unsigned i= 0; i < effectiveCalls.size(); i++) {
+            ICall *effectiveCall= effectiveCalls[i];
+            ICall *expectedCall= expectations[i];
+
+            result.reset(effectiveCall->Compare(*expectedCall));
+            if (result.get()) break;
+         }
+
+      }
+      /*if (!AllCallsVerified() && verifyOnDestructor)
       {
 			result.reset(new TimesIncorrect(TimesVerified(), GetTimesCalled()));
-		} 
+		} */
 
 		if (result.get()) {
 			std::stringstream ss;
@@ -76,6 +91,13 @@ public:
       }
    }
 
+   void AddExpectation(ICall *expectation)
+   {
+      expectations.push_back(expectation);
+   }
+
+   size_t GetActualCall() { return actualCall; }
+
 	size_t TimesVerified() { return timesVerified; }
 
 	void SetResult(ResultType *_result)
@@ -86,6 +108,7 @@ public:
 protected:
 	boost::shared_ptr<ResultType> result;
 
+   std::vector<ICall*> expectations;
    size_t actualCall;
 	size_t timesVerified;
    std::string methodName;

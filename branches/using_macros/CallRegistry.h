@@ -165,7 +165,7 @@ public:
 
    typename CallMatcherBase<CallMatcher<ReturnType, Param1, Param2, Param3> >::Ptr Expect()
    {
-      return CallMatcherBase<CallMatcher<ReturnType, Param1, Param2, Param3> >::Ptr(new CallMatcher<ReturnType, Param1, Param2, Param3>);
+      return CallMatcherBase<CallMatcher<ReturnType, Param1, Param2, Param3> >::Ptr(new CallMatcher<ReturnType, Param1, Param2, Param3>(*this));
    }
 
    typename ActionBuilderBase<ActionBuilder<ReturnType, Param1, Param2, Param3> >::Ptr WhenCall()
@@ -222,7 +222,8 @@ public:
       this->AddCall(new Call<ReturnType, Param1, Param2, Param3, Param4>(p1, p2, p3, p4));
 		for (unsigned i= 0; i < actions.size(); i++)
 		{
-			CallAction<ReturnType, Param1, Param2, Param3, Param4> *action= actions[i];
+			CallAction<ReturnType, Param1, Param2, Param3, Param4> *action= 
+            dynamic_cast<CallAction<ReturnType, Param1, Param2, Param3, Param4> *>(actions[i]);
 
 			if (action->KnowsThat(p1, p2, p3, p4)) {
 				GetNextCall()->Verified(true);

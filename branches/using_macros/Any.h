@@ -18,7 +18,7 @@ public:
 
 	virtual Matcher<typename Matcher<Type>::T> *Clone()
 	{
-		return new Any<Type>();
+		return new Any<typename Matcher<Type>::T>();
 	}
 };
 

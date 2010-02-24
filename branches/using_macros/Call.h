@@ -2,6 +2,7 @@
 #define INCLUDED_CALL_H
 
 #include "NullType.h"
+#include "ResultType.h"
 
 template <class ReturnType=nulltype
 , class Param1=nulltype
@@ -26,6 +27,8 @@ public:
 		verified= wasVerified;
 	}
 
+   virtual ResultType *Compare(ICall &)= 0;
+
 protected:
 	bool verified;
 };
@@ -33,6 +36,11 @@ protected:
 template <class ReturnType>
 class Call<ReturnType> : public ICall
 {
+public:
+   ResultType *Compare(ICall &_call)
+   {      
+      return NULL;
+   }
 };
 
 //1 arity
@@ -47,6 +55,15 @@ public:
 	{
 		return param1; 
 	}
+
+   ResultType *Compare(ICall &_call)
+   {
+      Call<ReturnType, Matcher<Param1>* > *call= 
+         dynamic_cast<Call<ReturnType, Matcher<Param1>*>*>(&_call);
+      if (*call->GetParam1() != param1)
+         return new ParameterIncorrect(1, "Incorrect parameter");
+      return NULL;
+   }
 };
 
 //2 arity
@@ -67,6 +84,17 @@ public:
 	{
 		return param2;
 	}
+
+   ResultType *Compare(ICall &_call)
+   {
+      Call<ReturnType, Matcher<Param1>*, Matcher<Param2>*> *call= 
+         dynamic_cast<Call<ReturnType, Matcher<Param1>*, Matcher<Param2>*>*>(&_call);
+      if (*call->GetParam1() != param1)
+         return new ParameterIncorrect(1, "Incorrect parameter");
+      if (*call->GetParam2() != param2)
+         return new ParameterIncorrect(2, "Incorrect parameter");
+      return NULL;
+   }
 };
 
 //3 arity
@@ -95,6 +123,19 @@ public:
 	{
 		return param3; 
 	}
+
+   ResultType *Compare(ICall &_call)
+   {
+      Call<ReturnType, Matcher<Param1>*, Matcher<Param2>*, Matcher<Param3>*> *call= 
+         dynamic_cast<Call<ReturnType, Matcher<Param1>*, Matcher<Param2>*, Matcher<Param3>*>*>(&_call);
+      if (*call->GetParam1() != param1)
+         return new ParameterIncorrect(1, "Incorrect parameter");
+      if (*call->GetParam2() != param2)
+         return new ParameterIncorrect(2, "Incorrect parameter");
+      if (*call->GetParam3() != param3)
+         return new ParameterIncorrect(3, "Incorrect parameter");
+      return NULL;
+   }
 };
 
 //4 arity
@@ -129,6 +170,21 @@ public:
 	{
 		return param4; 
 	}
+
+   ResultType *Compare(ICall &_call)
+   {
+      Call<ReturnType, Matcher<Param1>*, Matcher<Param2>*, Matcher<Param3>*, Matcher<Param4>*> *call= 
+         dynamic_cast<Call<ReturnType, Matcher<Param1>*, Matcher<Param2>*, Matcher<Param3>*, Matcher<Param4>*>*>(&_call);
+      if (*call->GetParam1() != param1)
+         return new ParameterIncorrect(1, "Incorrect parameter");
+      if (*call->GetParam2() != param2)
+         return new ParameterIncorrect(2, "Incorrect parameter");
+      if (*call->GetParam3() != param3)
+         return new ParameterIncorrect(3, "Incorrect parameter");
+      if (*call->GetParam4() != param4)
+         return new ParameterIncorrect(4, "Incorrect parameter");
+      return NULL;
+   }
 };
 //
 ////5 arity

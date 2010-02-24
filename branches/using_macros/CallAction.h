@@ -255,7 +255,7 @@ class CallAction<void, Param1, Param2, Param3> : public CallActionBase
 public:
    bool KnowsThat(Param1 p1, Param2 p2, Param3 p3)
    {
-      return (*matcher1 == p1) && (*matcher == p2) && (*matcher3 == p3);
+      return (*matcher1 == p1) && (*matcher2 == p2) && (*matcher3 == p3);
    }
 
    void Execute(Param1 p1, Param2 p2, Param3 p3)
@@ -330,7 +330,7 @@ class CallAction<void, Param1, Param2, Param3, Param4> : public CallActionBase
 public:	
    bool KnowsThat(Param1 p1, Param2 p2, Param3 p3, Param4 p4)
    {
-      return (*matcher1 == p1) && (*matcher == p2) && (*matcher3 == p3) && (*matcher4 == p4);
+      return (*matcher1 == p1) && (*matcher2 == p2) && (*matcher3 == p3) && (*matcher4 == p4);
    }
 
    void Execute(Param1 p1, Param2 p2, Param3 p3, Param4 p4)
