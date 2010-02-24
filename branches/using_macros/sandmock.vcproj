@@ -219,11 +219,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\MockExceptions.h"
+				>
+			</File>
+			<File
 				RelativePath=".\no_cref.h"
 				>
 			</File>
 			<File
 				RelativePath=".\NullType.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ResultType.h"
 				>
 			</File>
 			<File

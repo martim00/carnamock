@@ -62,6 +62,7 @@ class MockTest : public CPPUNIT_NS::TestFixture
 	CPPUNIT_TEST( testMockParamString );
 	CPPUNIT_TEST( testMockParamPtr );
 	CPPUNIT_TEST( testMockParamRef );
+	CPPUNIT_TEST( testMockFalhaPorTerTimesAMais );
 	/*CPPUNIT_TEST( testMockPermiteDefinirAcoesParaMetodos );
 	CPPUNIT_TEST( testDefinirAcoesComPlaceHolders );
 	CPPUNIT_TEST( testMetodoComDoisParametros );
@@ -175,12 +176,14 @@ protected:
 
 	void testMockFalhaSeExpectationsNoParametroNaoForemRealizadas()
 	{
-		MockClass mock;
-		mock.param1(1);
-
 		try {
-         EXPECT(mock, param1)->WithParams(Equal<int>(5)).Times(1);
-			//mock.Expect<int,int>("param1")->WithParams(Equal<int>(5)).Times(1);
+			{
+				MockClass mock;
+				mock.param1(1);
+				EXPECT(mock, param1)->WithParams(Equal<int>(5)).Times(1);
+				//mock.Expect<int,int>("param1")->WithParams(Equal<int>(5)).Times(1);
+
+			}
 
 			CPPUNIT_ASSERT(false);
 		} catch (std::runtime_error &)
@@ -226,6 +229,18 @@ protected:
       EXPECT(mock, param1Ref)->WithParams(Equal<int>(ref)).Times(1);
 		/*mock.Expect<int, int&>("param1Ref")->WithParams(Equal<int>(ref)).Times(1);*/
 	}
+
+	void testMockFalhaPorTerTimesAMais()
+	{
+		MockClass mock;
+		mock.param1(2);
+		mock.param1(2);
+		/*EXPECT(mock, param1)->WithParams(Equal<int>(2)).Times(1);
+
+		EXPECT(mock, param1)->WithParams(Equal<int>(2)).Times(1);	*/
+
+	}
+
 
 //	void testMockPermiteDefinirAcoesParaMetodos()
 //	{

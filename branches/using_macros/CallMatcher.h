@@ -65,32 +65,23 @@ public:
 	{
 		Call<ReturnType, Param1> *call= NULL;
 		for (unsigned i= 0; i < times; i++) {
+
 			try {
 				call= dynamic_cast<Call<ReturnType, Param1> *>(registry.GetNextCall());
-				if (parameterWasSetted) {
-					if (*matcher1 != call->GetParam1()) {
-                  std::runtime_error e(
-                     "Method expectation fail: \nMethod name:" + registry.MethodName() + "\nCause: " + matcher1->DescribeError()
-                  );
-						throw e;
-					}
-					call->Verified(true);
-            } else {
-               //TODO: throw exception (WithParams must be setted before)
-            }
-				
-			} catch (std::runtime_error& )
-			{
-				//todo: setar log no registry para que nao precise verificar no destructor.
+			} catch (std::runtime_error&) {
+				registry.SetResult(new TimesIncorrect(registry.TimesVerified(), registry.GetTimesCalled()));
+				break;
+			}
 
-				registry.VerifyOnDestructor(false);
-            std::stringstream ss;
-            ss << "Expectation do metodo " <<  registry.MethodName() << "falhou no numero de vezes\n";
-            ss << "Era(m) esperada(s) " << times << " vez(es).\n";
-            ss << "Fora(m) chamada(s) " << registry.GetTimesCalled() << " vez(es).\n";
+			if (parameterWasSetted) {
+				if (*matcher1 != call->GetParam1()) {
 
-            std::runtime_error e(ss.str());
-            throw e;
+					registry.SetResult(new ParameterIncorrect(1, matcher1->DescribeError()));
+				}
+				call->Verified(true);
+			} else {
+				std::runtime_error e("WithParams must be setted before Times");
+				throw e;
 			}
 		}
 		return *this;
@@ -98,8 +89,6 @@ public:
 
 	CallMatcher &WithParams(Matcher<Param1> &p1)
 	{
-		//param1= new ValueHolder<Param1>(p1);
-		/*actualParameter= &p1;*/
 		matcher1= &p1;
 		parameterWasSetted= true;
 		return *this;
@@ -107,10 +96,7 @@ public:
 
 private:
 	IRegistry &registry;
-
 	bool parameterWasSetted;
-	//Param1 &actualParameter;
-	//ValueHolder<Param1> *param1;
 	Matcher<Param1> *matcher1;
 };
 
@@ -267,8 +253,8 @@ public:
 				registry.VerifyOnDestructor(false);
             std::stringstream ss;
             ss << "Expectation do metodo " <<  registry.MethodName() << "falhou no numero de vezes\n";
-            ss << "Era(m) esperada(s) " << times << " vez(es).\n";
-            ss << "Fora(m) chamada(s) " << registry.GetTimesCalled() << " vez(es).\n";
+            ss << "Era esperado " << times << " vez(es).\n";
+            ss << "Foi chamado " << registry.GetTimesCalled() << " vez(es).\n";
 
             std::runtime_error e(ss.str());
             throw e;

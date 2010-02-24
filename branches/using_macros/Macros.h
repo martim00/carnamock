@@ -20,6 +20,6 @@
 #define RETURN_METHOD4(returnType, methodName, p1, p2, p3, p4) returnType methodName(p1 p1Value, p2 p2Value, p3 p3Value, p4 p4Value) { carna##methodName.SetMethodName(#methodName); return carna##methodName.Execute(p1Value, p2Value, p3Value, p4Value); } CallRegistry<returnType, p1, p2, p3, p4> carna##methodName;
 
 
-#define EXPECT(instance, methodName) instance.carna##methodName.Expect()
+#define EXPECT(instance, methodName) instance.carna##methodName.SetMethodName(#methodName); instance.carna##methodName.Expect()
 
 #endif

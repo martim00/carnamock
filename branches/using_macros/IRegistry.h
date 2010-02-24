@@ -2,6 +2,7 @@
 #ifndef INCLUDED_IREGISTRY_H
 #define INCLUDED_IREGISTRY_H
 
+#include "ResultType.h"
 #include <stdexcept>
 
 class ICall;
@@ -14,11 +15,19 @@ public:
       //MockMixin::GetRegistry<ReturnType>().erase(methodName);
       if (!AllCallsVerified() && verifyOnDestructor)
       {
-         std::runtime_error e("Nem todas as expectations do metodo "+methodName+" foram aceitas");
+			result.reset(new TimesIncorrect(TimesVerified(), GetTimesCalled()));         
+		} 
+		if (result.get()) {
+			std::stringstream ss;
+			ss << "Nem todas as expectations do metodo " << methodName << " foram aceitas" << std::endl;
+			ss << result->Description();
+
+			std::runtime_error e(ss.str());
          throw e;
-      }
+		}
+
    }
-   IRegistry() : actualCall(0), verifyOnDestructor(true) {}
+   IRegistry() : actualCall(0), verifyOnDestructor(true), timesVerified(0){}
 
    std::string MethodName() const { return methodName; }
    void SetMethodName(const std::string &_methodName) { methodName= _methodName; }
@@ -53,7 +62,10 @@ public:
 
    ICall *GetNextCall()
    {
+		timesVerified++;
       if (effectiveCalls.size() <= actualCall) {
+
+			
          std::runtime_error e("Nao ha mais calls");
          throw e;
       }
@@ -62,8 +74,20 @@ public:
       }
    }
 
+	//enum ResultType { NO_VERIFICATION, TIMES_INCORRECT, RIGHT_VERIFIED, INCORRECT_PARAMETERS } result;
+
+	size_t TimesVerified() { return timesVerified; }
+
+	void SetResult(ResultType *_result)
+	{
+		result.reset(_result);
+	}
+
 protected:
+	boost::shared_ptr<ResultType> result;
+
    size_t actualCall;
+	size_t timesVerified;
    std::string methodName;
    bool verifyOnDestructor;
    std::vector<CallActionBase*> actions;
