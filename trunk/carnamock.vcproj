@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9,00"
-	Name="sandmock"
+	Name="carnamock"
 	ProjectGUID="{25EE2572-7133-4C6B-AA62-25E8F9CD8B9F}"
 	RootNamespace="sandmock"
 	TargetFrameworkVersion="196613"
@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;C:\CTIP\cppunit-light\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(CPPUNIT_HOME)/include&quot;;&quot;$(BOOST_HOME)&quot;;third_part/;third_part/hamcrest/core;include"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -165,11 +165,19 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\main.cpp"
+				RelativePath=".\third_part\hamcrest\core\hc_description.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\MockTest.cpp"
+				RelativePath=".\third_part\hamcrest\core\hc_self_describing.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\tests\main.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\tests\MockTest.cpp"
 				>
 			</File>
 		</Filter>
@@ -179,51 +187,67 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\ActionBuilder.h"
+				RelativePath=".\include\ActionBuilder.h"
 				>
 			</File>
 			<File
-				RelativePath=".\Any.h"
+				RelativePath=".\include\Any.h"
 				>
 			</File>
 			<File
-				RelativePath=".\Call.h"
+				RelativePath=".\include\Call.h"
 				>
 			</File>
 			<File
-				RelativePath=".\CallAction.h"
+				RelativePath=".\include\CallAction.h"
 				>
 			</File>
 			<File
-				RelativePath=".\CallMatcher.h"
+				RelativePath=".\include\CallMatcher.h"
 				>
 			</File>
 			<File
-				RelativePath=".\CallRegistry.h"
+				RelativePath=".\include\CallRegistry.h"
 				>
 			</File>
 			<File
-				RelativePath=".\Macros.h"
+				RelativePath=".\include\Expectation.h"
 				>
 			</File>
 			<File
-				RelativePath=".\Matcher.h"
+				RelativePath=".\include\IRegistry.h"
 				>
 			</File>
 			<File
-				RelativePath=".\Mock.h"
+				RelativePath=".\include\Macros.h"
 				>
 			</File>
 			<File
-				RelativePath=".\no_cref.h"
+				RelativePath=".\include\Matcher.h"
 				>
 			</File>
 			<File
-				RelativePath=".\NullType.h"
+				RelativePath=".\include\MockMap.h"
 				>
 			</File>
 			<File
-				RelativePath=".\ValueHolder.h"
+				RelativePath=".\include\NiceMock.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\NullType.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\ResultType.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\TypeTraits.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\ValueHolder.h"
 				>
 			</File>
 		</Filter>

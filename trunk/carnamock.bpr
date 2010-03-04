@@ -4,7 +4,9 @@
   <MACROS>
     <VERSION value="BCB.06.00"/>
     <PROJECT value="carnamock.exe"/>
-    <OBJFILES value="MockTest.obj main.obj"/>
+    <OBJFILES value="tests\main.obj tests\MockTest.obj 
+      third_part\hamcrest\core\hc_self_describing.obj 
+      third_part\hamcrest\core\hc_description.obj"/>
     <RESFILES value="carnamock.res"/>
     <DEFFILE value=""/>
     <RESDEPEN value="$(RESFILES)"/>
@@ -12,15 +14,15 @@
     <LIBRARIES value=""/>
     <SPARELIBS value=""/>
     <PACKAGES value="vcl.bpi rtl.bpi vclx.bpi bcbsmp.bpi dbrtl.bpi adortl.bpi vcldb.bpi 
-      qrpt.bpi bdertl.bpi vcldbx.bpi dsnap.bpi cds.bpi bdecds.bpi teeui.bpi 
-      teedb.bpi tee.bpi teeqr.bpi ibxpress.bpi visualclx.bpi visualdbclx.bpi 
-      vclie.bpi xmlrtl.bpi inet.bpi inetdbbde.bpi inetdbxpress.bpi inetdb.bpi 
-      nmfast.bpi bcbie.bpi soaprtl.bpi dclocx.bpi dbexpress.bpi dbxcds.bpi 
-      indy.bpi bcb2kaxserver.bpi TMSC6.bpi VclSmp.bpi AudacesFlatButton.bpi 
-      Beep.bpi CoolCtlsB6.bpi aprdlgs60.bpi aprdlgx60.bpi bcbshlctrls.bpi 
-      FlatStyle_Cb4.bpi serial.bpi SpinEdit.bpi tb2k_cb6.bpi tbx_cb6.bpi 
-      tmsxlsc6.bpi twofish_cb6.bpi Audaces.bpi"/>
-    <PATHCPP value=".;"/>
+      qrpt.bpi bdertl.bpi dsnap.bpi cds.bpi bdecds.bpi ibxpress.bpi visualclx.bpi 
+      visualdbclx.bpi vclie.bpi xmlrtl.bpi inet.bpi inetdbbde.bpi 
+      inetdbxpress.bpi inetdb.bpi vcldbx.bpi nmfast.bpi bcbie.bpi soaprtl.bpi 
+      dclocx.bpi dbexpress.bpi dbxcds.bpi indy.bpi bcb2kaxserver.bpi 
+      twofish_cb6.bpi Audaces.bpi TMSC6.bpi tee.bpi VclSmp.bpi 
+      AudacesFlatButton.bpi Beep.bpi CoolCtlsB6.bpi aprdlgx60.bpi aprdlgs60.bpi 
+      bcbshlctrls.bpi PKIECTRLc6.bpi PKIEDBc6.bpi FlatStyle_Cb4.bpi serial.bpi 
+      SpinEdit.bpi tb2k_cb6.bpi tbx_cb6.bpi tmsxlsc6.bpi"/>
+    <PATHCPP value=".;tests;third_part\hamcrest\core"/>
     <PATHPAS value=".;"/>
     <PATHRC value=".;"/>
     <PATHASM value=".;"/>
@@ -30,14 +32,14 @@
     <USERDEFINES value="_DEBUG"/>
     <SYSDEFINES value="NO_STRICT;_NO_VCL;_RTLDLL;USEPACKAGES"/>
     <MAINSOURCE value="carnamock.bpf"/>
-    <INCLUDEPATH value="e:\user\Cad_10_1\carnamock;$(BCB)\include;$(BCB)\include\vcl;$(CPPUNIT_HOME)/include"/>
-    <LIBPATH value="$(BCB)\Projects\Bpl;$(BCB)\Projects\Lib;e:\user\Cad_10_1\carnamock;$(BCB)\lib\obj;$(BCB)\lib"/>
+    <INCLUDEPATH value="third_part\hamcrest\core;tests;$(BCB)\include;$(BCB)\include\vcl;$(BOOST_HOME);$(CPPUNIT_HOME)/include;include;third_part"/>
+    <LIBPATH value="$(BCB)\Projects\Lib;third_part\hamcrest\core;tests;$(BCB)\lib\obj;$(BCB)\lib"/>
     <WARNINGS value="-w-par"/>
     <OTHERFILES value=""/>
   </MACROS>
   <OPTIONS>
     <CFLAG1 value="-Od -H=$(BCB)\lib\vcl60.csm -Hc -Vx -Ve -X- -r- -a8 -b- -k -y -v -vi- -tWC 
-      -tWM- -c"/>
+      -tWM -c"/>
     <PFLAGS value="-$YD -$W -$O- -$A8 -v -JPHNE -M"/>
     <RFLAGS value=""/>
     <AFLAGS value="/mx /w2 /zd"/>
@@ -47,15 +49,17 @@
   <LINKER>
     <ALLOBJ value="c0x32.obj $(PACKAGES) $(OBJFILES)"/>
     <ALLRES value="$(RESFILES)"/>
-    <ALLLIB value="$(LIBFILES) $(LIBRARIES) import32.lib cw32i.lib"/>
+    <ALLLIB value="$(LIBFILES) $(LIBRARIES) import32.lib cw32mti.lib"/>
     <OTHERFILES value=""/>
   </LINKER>
   <FILELIST>
       <FILE FILENAME="carnamock.res" FORMNAME="" UNITNAME="carnamock.res" CONTAINERID="ResTool" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="carnamock.bpf" FORMNAME="" UNITNAME="carnamock" CONTAINERID="BPF" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="MockTest.cpp" FORMNAME="" UNITNAME="MockTest.cpp" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="tests\main.cpp" FORMNAME="" UNITNAME="main" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="tests\MockTest.cpp" FORMNAME="" UNITNAME="MockTest" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="third_part\hamcrest\core\hc_self_describing.cpp" FORMNAME="" UNITNAME="hc_self_describing.cpp" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="third_part\hamcrest\core\hc_description.cpp" FORMNAME="" UNITNAME="hc_description.cpp" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="C:\CTIP\cppunit-light\lib\cppunitd_bc6.lib" FORMNAME="" UNITNAME="cppunitd_bc6.lib" CONTAINERID="LibTool" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="main.cpp" FORMNAME="" UNITNAME="main" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
   </FILELIST>
   <BUILDTOOLS>
   </BUILDTOOLS>
@@ -88,14 +92,22 @@ ProductName=
 ProductVersion=1.0.0.0
 Comments=
 
+[Excluded Packages]
+C:\Arquivos de programas\Borland\CBuilder6\Projects\Bpl\PKIECTRLc6.bpl=ImageEn Controls
+C:\Arquivos de programas\Borland\CBuilder6\Projects\Bpl\PKIEDBc6.bpl=PKIEDBc6
+C:\Arquivos de programas\Borland\CBuilder6\Bin\dcltee60.bpl=TeeChart Components
+c:\arquivos de programas\borland\cbuilder6\Bin\dcltqr60.bpl=TeeChart for QuickReport Components
+
 [HistoryLists\hlIncludePath]
-Count=2
-Item0=e:\user\Cad_10_1\carnamock;$(BCB)\include;$(BCB)\include\vcl;$(CPPUNIT_HOME)/include
-Item1=e:\user\Cad_10_1\carnamock;$(BCB)\include;$(BCB)\include\vcl
+Count=4
+Item0=third_part\hamcrest\core;tests;$(BCB)\include;$(BCB)\include\vcl;$(BOOST_HOME);$(CPPUNIT_HOME)/include;include;third_part\
+Item1=third_part\hamcrest\core;tests;$(BCB)\include;$(BCB)\include\vcl;$(BOOST_HOME);$(CPPUNIT_HOME)/include;include
+Item2=third_part\hamcrest\core;tests;$(BCB)\include;$(BCB)\include\vcl;$(BOOST_HOME);$(CPPUNIT_HOME)/include
+Item3=third_part\hamcrest\core;tests;$(BCB)\include;$(BCB)\include\vcl
 
 [HistoryLists\hlLibraryPath]
 Count=1
-Item0=e:\user\Cad_10_1\carnamock;$(BCB)\lib\obj;$(BCB)\lib
+Item0=$(BCB)\Projects\Lib;third_part\hamcrest\core;tests;$(BCB)\lib\obj;$(BCB)\lib
 
 [HistoryLists\hlDebugSourcePath]
 Count=1
