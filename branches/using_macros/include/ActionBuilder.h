@@ -4,6 +4,8 @@
 #include "IRegistry.h"
 #include "NullType.h"
 
+namespace carnamock {
+
 template <class ReturnType= nulltype, class Param1= nulltype, class Param2= nulltype, class Param3= nulltype, class Param4= nulltype, class Param5= nulltype> 
 class ActionBuilder;
 
@@ -51,13 +53,6 @@ public:
       IRegistry &_reg
       ) : registry(_reg), actualAction(new CallAction<void>()) {}	
 
-   /*ActionBuilder<ReturnType> &AllwaysReturn(ReturnType returns)
-   {
-      actualAction->SetReturn(returns);
-      registry.AddAction(actualAction);
-      return *this;
-   }*/
-
    ActionBuilder<void> &AllwaysExecute(boost::function0<void> func)
    {
       actualAction->SetFunction(func);
@@ -81,7 +76,7 @@ public:
 	{
 	}
 
-	ActionBuilder<ReturnType, Param1> &WithParam(Matcher<Param1> &matcher)
+	ActionBuilder<ReturnType, Param1> &WithParam(hamcrest::matcher<Param1> &matcher)
 	{
 		actualAction->SetParam(matcher);
 		return *this;
@@ -116,7 +111,7 @@ public:
    {
    }
 
-   ActionBuilder<void, Param1> &WithParam(Matcher<Param1> &matcher)
+   ActionBuilder<void, Param1> &WithParam(hamcrest::matcher<Param1> &matcher)
    {
       actualAction->SetParam(matcher);
       return *this;
@@ -147,8 +142,8 @@ public:
 	{
 	}
 
-	ActionBuilder<ReturnType, Param1, Param2> &WithParam(Matcher<Param1> &matcher1
-		, Matcher<Param2> &matcher2)
+	ActionBuilder<ReturnType, Param1, Param2> &WithParam(hamcrest::matcher<Param1> &matcher1
+		, hamcrest::matcher<Param2> &matcher2)
 	{
 		actualAction->SetParam(matcher1, matcher2);
 		return *this;
@@ -185,8 +180,8 @@ public:
    {
    }
 
-   ActionBuilder<void, Param1, Param2> &WithParam(Matcher<Param1> &matcher1
-      , Matcher<Param2> &matcher2)
+   ActionBuilder<void, Param1, Param2> &WithParam(hamcrest::matcher<Param1> &matcher1
+      , hamcrest::matcher<Param2> &matcher2)
    {
       actualAction->SetParam(matcher1, matcher2);
       return *this;
@@ -218,9 +213,9 @@ public:
 	{
 	}
 
-	ActionBuilder<ReturnType, Param1, Param2, Param3> &WithParam(Matcher<Param1> &matcher1
-		, Matcher<Param2> &matcher2
-		, Matcher<Param3> &matcher3)
+	ActionBuilder<ReturnType, Param1, Param2, Param3> &WithParam(hamcrest::matcher<Param1> &matcher1
+		, hamcrest::matcher<Param2> &matcher2
+		, hamcrest::matcher<Param3> &matcher3)
 	{
 		actualAction->SetParam(matcher1, matcher2, matcher3);
 		return *this;
@@ -256,9 +251,9 @@ public:
       IRegistry &_reg
       ) : registry(_reg), actualAction(new CallAction<ReturnType, Param1, Param2, Param3>()) {}
 
-   ActionBuilder<void, Param1, Param2, Param3> &WithParam(Matcher<Param1> &matcher1
-      , Matcher<Param2> &matcher2
-      , Matcher<Param3> &matcher3)
+   ActionBuilder<void, Param1, Param2, Param3> &WithParam(hamcrest::matcher<Param1> &matcher1
+      , hamcrest::matcher<Param2> &matcher2
+      , hamcrest::matcher<Param3> &matcher3)
    {
       actualAction->SetParam(matcher1, matcher2, matcher3);
       return *this;
@@ -291,10 +286,10 @@ public:
 	}
 
 	ActionBuilder<ReturnType, Param1, Param2, Param3, Param4> &WithParam(
-		Matcher<Param1> &matcher1
-		, Matcher<Param2> &matcher2
-		, Matcher<Param3> &matcher3
-		, Matcher<Param4> &matcher4
+		hamcrest::matcher<Param1> &matcher1
+		, hamcrest::matcher<Param2> &matcher2
+		, hamcrest::matcher<Param3> &matcher3
+		, hamcrest::matcher<Param4> &matcher4
 		)
 	{
 		actualAction->SetParam(matcher1, matcher2, matcher3, matcher4);
@@ -334,10 +329,10 @@ public:
    }
 
    ActionBuilder<void, Param1, Param2, Param3, Param4> &WithParam(
-      Matcher<Param1> &matcher1
-      , Matcher<Param2> &matcher2
-      , Matcher<Param3> &matcher3
-      , Matcher<Param4> &matcher4
+      hamcrest::matcher<Param1> &matcher1
+      , hamcrest::matcher<Param2> &matcher2
+      , hamcrest::matcher<Param3> &matcher3
+      , hamcrest::matcher<Param4> &matcher4
       )
    {
       actualAction->SetParam(matcher1, matcher2, matcher3, matcher4);
@@ -371,11 +366,11 @@ private:
 //	}
 //
 //	ActionBuilder<ReturnType, Param1, Param2, Param3, Param4, Param5> &WithParam(
-//		Matcher<Param1> &matcher1
-//		, Matcher<Param2> &matcher2
-//		, Matcher<Param3> &matcher3
-//		, Matcher<Param4> &matcher4
-//		, Matcher<Param5> &matcher5
+//		hamcrest::matcher<Param1> &matcher1
+//		, hamcrest::matcher<Param2> &matcher2
+//		, hamcrest::matcher<Param3> &matcher3
+//		, hamcrest::matcher<Param4> &matcher4
+//		, hamcrest::matcher<Param5> &matcher5
 //		)
 //	{
 //		actualAction->SetParam(matcher1, matcher2, matcher3, matcher4);
@@ -393,5 +388,7 @@ private:
 //	CallAction<ReturnType, Param1, Param2, Param3, Param4, Param5> *actualAction;
 //	CallRegistry<ReturnType, Param1, Param2, Param3, Param4, Param5> &registry;
 //};
+
+} // namespace carnamock
 
 #endif 

@@ -10,7 +10,8 @@
 #include "TypeTraits.h"
 
 #include "IRegistry.h"
-#include "no_cref.h"
+
+namespace carnamock {
 
 template <class ReturnType=nulltype
 , class Param1=nulltype
@@ -25,16 +26,18 @@ class CallRegistry<ReturnType> : public IRegistry
 {
 public:
    typedef CallRegistry<ReturnType> Type;
-   typedef Call<ReturnType> CallType;
+   //typedef Call<ReturnType> CallType;
    typedef carnamock::is_void<ReturnType> IsVoidReturn;
 	
 	virtual ~CallRegistry()	{}
 
 	ReturnType Execute()
 	{
-      this->AddCall(new Call<ReturnType>());
+      this->AddCall(new Call());
       if (!actions.empty()) {
-         CallAction<ReturnType> *actionDerived= dynamic_cast<CallAction<ReturnType>*>(actions[0]);
+         CallAction<ReturnType> *actionDerived= 
+				dynamic_cast<CallAction<ReturnType>*>(actions[0].get());
+
          if (!IsVoidReturn::result) {
             return actionDerived->Execute();
          } else {
@@ -51,6 +54,11 @@ public:
       //return ReturnType();
 	}
 
+   //ResultType *compareCalls(ICall *_expected, ICall *_actual)
+   //{
+   //   return NULL;
+   //}
+
    typename CallMatcherBase<CallMatcher<ReturnType> >::Ptr Expect()
    {
       return CallMatcherBase<CallMatcher<ReturnType> >::Ptr(new CallMatcher<ReturnType>(*this));
@@ -59,7 +67,7 @@ public:
    typename ActionBuilderBase<ActionBuilder<ReturnType> >::Ptr WhenCall()
    {
       return ActionBuilderBase<ActionBuilder<ReturnType> >::Ptr(new ActionBuilder<ReturnType>(*this));
-   }  
+   }
 };
 
 template <class ReturnType, class P1>
@@ -68,7 +76,7 @@ class CallRegistry<ReturnType, P1> : public IRegistry
 public:
    typedef typename no_cref<P1>::type Param1;
    typedef CallRegistry<ReturnType, Param1> Type;
-   typedef Call<ReturnType, Param1> CallType;
+   //typedef Call<ReturnType, Param1> CallType;
    typedef carnamock::is_void<ReturnType> IsVoidReturn;
    
    virtual ~CallRegistry() {}
@@ -85,13 +93,16 @@ public:
 
 	ReturnType Execute(Param1 p1)
 	{
-      this->AddCall(new Call<ReturnType, Param1>(p1));
+		Call *call= new Call();
+		call->AddParam(new ValueHolder<Param1>(p1));
+		this->AddCall(call);
+
 		for (unsigned i= 0; i < actions.size(); i++)
 		{
-			CallAction<ReturnType, Param1> *action= dynamic_cast<CallAction<ReturnType, Param1>*>(actions[i]);
+			CallAction<ReturnType, Param1> *action= dynamic_cast<CallAction<ReturnType, Param1>*>(actions[i].get());
 
 			if (action->KnowsThat(p1)) {
-				GetNextCall()->Verified(true);
+				//GetNextCall()->Verified(true);
             if (!IsVoidReturn::result) 
 				   return action->Execute(p1);
             else 
@@ -114,7 +125,7 @@ public:
    typedef typename no_cref<P2>::type Param2;
 
    typedef CallRegistry<ReturnType, Param1, Param2> Type;
-   typedef Call<ReturnType, Param1, Param2> CallType;
+   //typedef Call<ReturnType, Param1, Param2> CallType;
    typedef carnamock::is_void<ReturnType> IsVoidReturn;
 
 	virtual ~CallRegistry() {}
@@ -129,13 +140,29 @@ public:
       return ActionBuilderBase<ActionBuilder<ReturnType, Param1, Param2> >::Ptr(new ActionBuilder<ReturnType, Param1, Param2>(*this));
    }
 
+   //ResultType *compareCalls(ICall *_expected, ICall *_actual)
+   //{
+   //   Call<ReturnType, Matcher<Param1>*, Matcher<Param2>*> *expected= 
+   //      dynamic_cast<Call<ReturnType, Matcher<Param1>*, Matcher<Param2>*>*>(_expected);
+   //   Call<ReturnType, Param1, Param2> *actual= dynamic_cast<Call<ReturnType, Param1, Param2> *>(_actual);
+
+   //   if (*expected->GetParam1() != actual->GetParam1())
+   //      return new ParameterIncorrect(1, "Incorrect parameter");
+   //   else if (*expected->GetParam2() != actual->GetParam2())
+   //      return new ParameterIncorrect(2, "Incorrect parameter");
+   //   return NULL;
+   //}
+
    ReturnType Execute(Param1 p1, Param2 p2)
 	{
-      this->AddCall(new Call<ReturnType, Param1, Param2>(p1, p2));
+		Call *call= new Call();
+		call->AddParam(new ValueHolder<Param1>(p1));
+		call->AddParam(new ValueHolder<Param2>(p2));
+		this->AddCall(call);
 		for (unsigned i= 0; i < actions.size(); i++)
 		{
 			CallAction<ReturnType, Param1, Param2> *action= 
-            dynamic_cast<CallAction<ReturnType, Param1, Param2>*>(actions[i]);
+            dynamic_cast<CallAction<ReturnType, Param1, Param2>*>(actions[i].get());
 
 			if (action->KnowsThat(p1, p2)) {
 				//GetNextCall()->Verified(true);
@@ -158,7 +185,7 @@ class CallRegistry<ReturnType, Param1, Param2, Param3> : public IRegistry
 {
 public:
    typedef CallRegistry<ReturnType, Param1, Param2, Param3> Type;
-   typedef Call<ReturnType, Param1, Param2, Param3> CallType;
+   //typedef Call<ReturnType, Param1, Param2, Param3> CallType;
    typedef carnamock::is_void<ReturnType> IsVoidReturn;
 
 	virtual ~CallRegistry() {}
@@ -172,6 +199,21 @@ public:
    {
       return ActionBuilderBase<ActionBuilder<ReturnType, Param1, Param2, Param3> >::Ptr(new ActionBuilder<ReturnType, Param1, Param2, Param3>(*this));
    }
+
+   //ResultType *compareCalls(ICall *_expected, ICall *_actual)
+   //{
+   //   Call<ReturnType, Matcher<Param1>*, Matcher<Param2>*, Matcher<Param3>*> *expected= 
+   //      dynamic_cast<Call<ReturnType, Matcher<Param1>*, Matcher<Param2>*, Matcher<Param3>*>*>(_expected);
+   //   Call<ReturnType, Param1, Param2, Param3> *actual= dynamic_cast<Call<ReturnType, Param1, Param2, Param3> *>(_actual);
+
+   //   if (*expected->GetParam1() != actual->GetParam1())
+   //      return new ParameterIncorrect(1, "Incorrect parameter");
+   //   else if (*expected->GetParam2() != actual->GetParam2())
+   //      return new ParameterIncorrect(2, "Incorrect parameter");
+   //   else if (*expected->GetParam3() != actual->GetParam3())
+   //      return new ParameterIncorrect(3, "Incorrect parameter");
+   //   return NULL;
+   //}
 
    ReturnType Execute(Param1 p1, Param2 p2, Param3 p3)
 	{
@@ -202,7 +244,7 @@ class CallRegistry<ReturnType, Param1, Param2, Param3, Param4> : public IRegistr
 {
 public:
    typedef CallRegistry<ReturnType, Param1, Param2, Param3, Param4> Type;
-   typedef Call<ReturnType, Param1, Param2, Param3, Param4> CallType;
+   //typedef Call<ReturnType, Param1, Param2, Param3, Param4> CallType;
    typedef carnamock::is_void<ReturnType> IsVoidReturn;
 
 	virtual ~CallRegistry() {}
@@ -216,6 +258,24 @@ public:
    {
       return ActionBuilderBase<ActionBuilder<ReturnType, Param1, Param2, Param3, Param4> >::Ptr(new ActionBuilder<ReturnType, Param1, Param2, Param3, Param4>(*this));
    }
+
+   /*ResultType *compareCalls(ICall *_expected, ICall *_actual)
+   {
+      Call<ReturnType, Matcher<Param1>*, Matcher<Param2>*, Matcher<Param3>*, Matcher<Param4>*> *expected= 
+         dynamic_cast<Call<ReturnType, Matcher<Param1>*, Matcher<Param2>*, Matcher<Param3>*, Matcher<Param4>*>*>(_expected);
+      Call<ReturnType, Param1, Param2, Param3, Param4> *actual= dynamic_cast<Call<ReturnType, Param1, Param2, Param3, Param4> *>(_actual);
+
+      if (*expected->GetParam1() != actual->GetParam1())
+         return new ParameterIncorrect(1, "Incorrect parameter");
+      else if (*expected->GetParam2() != actual->GetParam2())
+         return new ParameterIncorrect(2, "Incorrect parameter");
+      else if (*expected->GetParam3() != actual->GetParam3())
+         return new ParameterIncorrect(3, "Incorrect parameter");
+      else if (*expected->GetParam4() != actual->GetParam4())
+         return new ParameterIncorrect(4, "Incorrect parameter");
+      return NULL;
+   }*/
+
 
    ReturnType Execute(Param1 p1, Param2 p2, Param3 p3, Param4 p4)
    {
@@ -323,5 +383,7 @@ public:
 //	size_t actualCall;
 //	bool verifyOnDestructor;
 //};
+
+} //namespace carnamock
 
 #endif 
