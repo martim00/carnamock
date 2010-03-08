@@ -5,7 +5,7 @@
 #include "Call.h"
 #include "NullType.h"
 #include "CallAction.h"
-#include "CallMatcher.h"
+#include "ExpectationBuilder.h"
 #include "ActionBuilder.h"
 #include "TypeTraits.h"
 
@@ -26,7 +26,7 @@ class CallRegistry<ReturnType> : public IRegistry
 {
 public:
    typedef CallRegistry<ReturnType> Type;
-   //typedef Call<ReturnType> CallType;
+	enum { NrParams= 0 };
    typedef carnamock::is_void<ReturnType> IsVoidReturn;
 	
 	virtual ~CallRegistry()	{}
@@ -48,20 +48,16 @@ public:
       if (!IsVoidReturn::result) {
          return ReturnType();
       }
-      /*std::runtime_error e("You must set some action");
-      throw e;*/
-      
-      //return ReturnType();
 	}
 
-   //ResultType *compareCalls(ICall *_expected, ICall *_actual)
-   //{
-   //   return NULL;
-   //}
-
-   typename CallMatcherBase<CallMatcher<ReturnType> >::Ptr Expect()
+   /*typename CallMatcherBase<CallMatcher<ReturnType> >::Ptr Expect()
    {
       return CallMatcherBase<CallMatcher<ReturnType> >::Ptr(new CallMatcher<ReturnType>(*this));
+   }*/
+
+	typename ExpectationBuilder<Type>::Ptr Expect()
+   {
+      return ExpectationBuilder<Type>::Ptr(new ExpectationBuilder<Type>(*this));
    }
 
    typename ActionBuilderBase<ActionBuilder<ReturnType> >::Ptr WhenCall()
@@ -74,16 +70,22 @@ template <class ReturnType, class P1>
 class CallRegistry<ReturnType, P1> : public IRegistry
 {
 public:
+	typedef ReturnType ReturnType;
    typedef typename no_cref<P1>::type Param1;
-   typedef CallRegistry<ReturnType, Param1> Type;
-   //typedef Call<ReturnType, Param1> CallType;
+	enum { NrParams= 1 };
+   //typedef CallRegistry<ReturnType, Param1> Type;
+	typedef CallRegistry<ReturnType, P1> Type;
    typedef carnamock::is_void<ReturnType> IsVoidReturn;
    
    virtual ~CallRegistry() {}
 
-   typename CallMatcherBase<CallMatcher<ReturnType, Param1> >::Ptr Expect()
+  /* typename CallMatcherBase<CallMatcher<ReturnType, Param1> >::Ptr Expect()
    {
       return CallMatcherBase<CallMatcher<ReturnType, Param1> >::Ptr(new CallMatcher<ReturnType, Param1>(*this));
+   }*/
+	typename ExpectationBuilder<Type>::Ptr Expect()
+   {
+      return ExpectationBuilder<Type>::Ptr(new ExpectationBuilder<Type>(*this));
    }
 
    typename ActionBuilderBase<ActionBuilder<ReturnType, Param1> >::Ptr WhenCall()
@@ -102,7 +104,6 @@ public:
 			CallAction<ReturnType, Param1> *action= dynamic_cast<CallAction<ReturnType, Param1>*>(actions[i].get());
 
 			if (action->KnowsThat(p1)) {
-				//GetNextCall()->Verified(true);
             if (!IsVoidReturn::result) 
 				   return action->Execute(p1);
             else 
@@ -112,7 +113,7 @@ public:
 		}
       if (!IsVoidReturn::result)
 		   return ReturnType();
-	}
+	}	
 };
 
 //2 arity
@@ -123,16 +124,22 @@ class CallRegistry<ReturnType, P1, P2> : public IRegistry
 public:
    typedef typename no_cref<P1>::type Param1;
    typedef typename no_cref<P2>::type Param2;
+	enum { NrParams= 2 };
 
-   typedef CallRegistry<ReturnType, Param1, Param2> Type;
-   //typedef Call<ReturnType, Param1, Param2> CallType;
+   //typedef CallRegistry<ReturnType, Param1, Param2> Type;
+	typedef CallRegistry<ReturnType, P1, P2> Type;
    typedef carnamock::is_void<ReturnType> IsVoidReturn;
 
 	virtual ~CallRegistry() {}
 
-   typename CallMatcherBase<CallMatcher<ReturnType, Param1, Param2> >::Ptr Expect()
+   /*typename CallMatcherBase<CallMatcher<ReturnType, Param1, Param2> >::Ptr Expect()
    {
       return CallMatcherBase<CallMatcher<ReturnType, Param1, Param2> >::Ptr(new CallMatcher<ReturnType, Param1, Param2>(*this));
+   }*/
+
+	typename ExpectationBuilder<Type>::Ptr Expect()
+   {
+      return ExpectationBuilder<Type>::Ptr(new ExpectationBuilder<Type>(*this));
    }
 
    typename ActionBuilderBase<ActionBuilder<ReturnType, Param1, Param2> >::Ptr WhenCall()
@@ -140,18 +147,6 @@ public:
       return ActionBuilderBase<ActionBuilder<ReturnType, Param1, Param2> >::Ptr(new ActionBuilder<ReturnType, Param1, Param2>(*this));
    }
 
-   //ResultType *compareCalls(ICall *_expected, ICall *_actual)
-   //{
-   //   Call<ReturnType, Matcher<Param1>*, Matcher<Param2>*> *expected= 
-   //      dynamic_cast<Call<ReturnType, Matcher<Param1>*, Matcher<Param2>*>*>(_expected);
-   //   Call<ReturnType, Param1, Param2> *actual= dynamic_cast<Call<ReturnType, Param1, Param2> *>(_actual);
-
-   //   if (*expected->GetParam1() != actual->GetParam1())
-   //      return new ParameterIncorrect(1, "Incorrect parameter");
-   //   else if (*expected->GetParam2() != actual->GetParam2())
-   //      return new ParameterIncorrect(2, "Incorrect parameter");
-   //   return NULL;
-   //}
 
    ReturnType Execute(Param1 p1, Param2 p2)
 	{
@@ -165,7 +160,6 @@ public:
             dynamic_cast<CallAction<ReturnType, Param1, Param2>*>(actions[i].get());
 
 			if (action->KnowsThat(p1, p2)) {
-				//GetNextCall()->Verified(true);
             if (!IsVoidReturn::result)
 				   return action->Execute(p1, p2);
             else 
@@ -180,40 +174,35 @@ public:
 
 //3 arity
 
-template <class ReturnType, class Param1, class Param2, class Param3>
-class CallRegistry<ReturnType, Param1, Param2, Param3> : public IRegistry
+template <class ReturnType, class P1, class P2, class P3>
+class CallRegistry<ReturnType, P1, P2, P3> : public IRegistry
 {
 public:
+	typedef typename no_cref<P1>::type Param1;
+   typedef typename no_cref<P2>::type Param2;
+	typedef typename no_cref<P3>::type Param3;
+	enum { NrParams= 3 };
+
    typedef CallRegistry<ReturnType, Param1, Param2, Param3> Type;
-   //typedef Call<ReturnType, Param1, Param2, Param3> CallType;
+
    typedef carnamock::is_void<ReturnType> IsVoidReturn;
 
 	virtual ~CallRegistry() {}
 
-   typename CallMatcherBase<CallMatcher<ReturnType, Param1, Param2, Param3> >::Ptr Expect()
+   //typename CallMatcherBase<CallMatcher<ReturnType, Param1, Param2, Param3> >::Ptr Expect()
+   //{
+   //   return CallMatcherBase<CallMatcher<ReturnType, Param1, Param2, Param3> >::Ptr(new CallMatcher<ReturnType, Param1, Param2, Param3>(*this));
+   //}
+
+	typename ExpectationBuilder<Type>::Ptr Expect()
    {
-      return CallMatcherBase<CallMatcher<ReturnType, Param1, Param2, Param3> >::Ptr(new CallMatcher<ReturnType, Param1, Param2, Param3>(*this));
+      return ExpectationBuilder<Type>::Ptr(new ExpectationBuilder<Type>(*this));
    }
 
    typename ActionBuilderBase<ActionBuilder<ReturnType, Param1, Param2, Param3> >::Ptr WhenCall()
    {
       return ActionBuilderBase<ActionBuilder<ReturnType, Param1, Param2, Param3> >::Ptr(new ActionBuilder<ReturnType, Param1, Param2, Param3>(*this));
    }
-
-   //ResultType *compareCalls(ICall *_expected, ICall *_actual)
-   //{
-   //   Call<ReturnType, Matcher<Param1>*, Matcher<Param2>*, Matcher<Param3>*> *expected= 
-   //      dynamic_cast<Call<ReturnType, Matcher<Param1>*, Matcher<Param2>*, Matcher<Param3>*>*>(_expected);
-   //   Call<ReturnType, Param1, Param2, Param3> *actual= dynamic_cast<Call<ReturnType, Param1, Param2, Param3> *>(_actual);
-
-   //   if (*expected->GetParam1() != actual->GetParam1())
-   //      return new ParameterIncorrect(1, "Incorrect parameter");
-   //   else if (*expected->GetParam2() != actual->GetParam2())
-   //      return new ParameterIncorrect(2, "Incorrect parameter");
-   //   else if (*expected->GetParam3() != actual->GetParam3())
-   //      return new ParameterIncorrect(3, "Incorrect parameter");
-   //   return NULL;
-   //}
 
    ReturnType Execute(Param1 p1, Param2 p2, Param3 p3)
 	{
@@ -239,43 +228,35 @@ public:
 
 //4 arity
 
-template <class ReturnType, class Param1, class Param2, class Param3, class Param4>
-class CallRegistry<ReturnType, Param1, Param2, Param3, Param4> : public IRegistry
+template <class ReturnType, class P1, class P2, class P3, class P4>
+class CallRegistry<ReturnType, P1, P2, P3, P4> : public IRegistry
 {
 public:
+	typedef typename no_cref<P1>::type Param1;
+   typedef typename no_cref<P2>::type Param2;
+	typedef typename no_cref<P3>::type Param3;
+	typedef typename no_cref<P4>::type Param4;
+	enum { NrParams= 4 };
+	
+
    typedef CallRegistry<ReturnType, Param1, Param2, Param3, Param4> Type;
-   //typedef Call<ReturnType, Param1, Param2, Param3, Param4> CallType;
    typedef carnamock::is_void<ReturnType> IsVoidReturn;
 
 	virtual ~CallRegistry() {}
 
-   typename CallMatcherBase<CallMatcher<ReturnType, Param1, Param2, Param3, Param4> >::Ptr Expect()
+   //typename CallMatcherBase<CallMatcher<ReturnType, Param1, Param2, Param3, Param4> >::Ptr Expect()
+   //{
+   //   return CallMatcherBase<CallMatcher<ReturnType, Param1, Param2, Param3, Param4> >::Ptr(new CallMatcher<ReturnType, Param1, Param2, Param3, Param4>);
+   //}
+	typename ExpectationBuilder<Type>::Ptr Expect()
    {
-      return CallMatcherBase<CallMatcher<ReturnType, Param1, Param2, Param3, Param4> >::Ptr(new CallMatcher<ReturnType, Param1, Param2, Param3, Param4>);
+      return ExpectationBuilder<Type>::Ptr(new ExpectationBuilder<Type>(*this));
    }
 
    typename ActionBuilderBase<ActionBuilder<ReturnType, Param1, Param2, Param3, Param4> >::Ptr WhenCall()
    {
       return ActionBuilderBase<ActionBuilder<ReturnType, Param1, Param2, Param3, Param4> >::Ptr(new ActionBuilder<ReturnType, Param1, Param2, Param3, Param4>(*this));
    }
-
-   /*ResultType *compareCalls(ICall *_expected, ICall *_actual)
-   {
-      Call<ReturnType, Matcher<Param1>*, Matcher<Param2>*, Matcher<Param3>*, Matcher<Param4>*> *expected= 
-         dynamic_cast<Call<ReturnType, Matcher<Param1>*, Matcher<Param2>*, Matcher<Param3>*, Matcher<Param4>*>*>(_expected);
-      Call<ReturnType, Param1, Param2, Param3, Param4> *actual= dynamic_cast<Call<ReturnType, Param1, Param2, Param3, Param4> *>(_actual);
-
-      if (*expected->GetParam1() != actual->GetParam1())
-         return new ParameterIncorrect(1, "Incorrect parameter");
-      else if (*expected->GetParam2() != actual->GetParam2())
-         return new ParameterIncorrect(2, "Incorrect parameter");
-      else if (*expected->GetParam3() != actual->GetParam3())
-         return new ParameterIncorrect(3, "Incorrect parameter");
-      else if (*expected->GetParam4() != actual->GetParam4())
-         return new ParameterIncorrect(4, "Incorrect parameter");
-      return NULL;
-   }*/
-
 
    ReturnType Execute(Param1 p1, Param2 p2, Param3 p3, Param4 p4)
    {

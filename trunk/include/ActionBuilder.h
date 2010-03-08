@@ -4,11 +4,13 @@
 #include "IRegistry.h"
 #include "NullType.h"
 
+#include <boost/shared_ptr.hpp>
+
 namespace carnamock {
+
 
 template <class ReturnType= nulltype, class Param1= nulltype, class Param2= nulltype, class Param3= nulltype, class Param4= nulltype, class Param5= nulltype> 
 class ActionBuilder;
-
 
 template <class Derived>
 class ActionBuilderBase 
@@ -387,6 +389,75 @@ private:
 //private:
 //	CallAction<ReturnType, Param1, Param2, Param3, Param4, Param5> *actualAction;
 //	CallRegistry<ReturnType, Param1, Param2, Param3, Param4, Param5> &registry;
+//};
+
+
+//tentativa de retirar code bloat
+
+//template <class RegistryType, class RetType= RegistryType::ReturnType, int nrArgs= RegistryType::NrParams>
+//class NewActionBuilder
+//{
+//	RegistryType &registry;
+//
+//public:
+//	//typedef boost::shared_ptr<NewActionBuilder<RegistryType> > Ptr;
+//
+//	~NewActionBuilder() {}
+//
+//	NewActionBuilder(RegistryType &_registry) : registry(_registry) {}
+//};
+//
+////0 params and no return
+//template <class RegistryType>
+//class NewActionBuilder<RegistryType, void, 0>
+//{
+//public:
+//	//typedef boost::shared_ptr<NewActionBuilder<RegistryType> > Ptr;
+//
+//	~NewActionBuilder() {}
+//
+//	NewActionBuilder(RegistryType &_registry) : registry(_registry) 
+//		, actualAction(new CallAction<void>()) {}		
+//
+//   NewActionBuilder<RegistryType, void, 0> &AllwaysExecute(boost::function0<void> func)
+//   {
+//      actualAction->SetFunction(func);
+//      registry.AddAction(actualAction);
+//      return *this;
+//   }
+//private:
+//	RegistryType &registry;
+//	CallAction<void> *actualAction;
+//};
+//
+////0 params and return
+//template <class RegistryType, class RetType>
+//class NewActionBuilder<RegistryType, RetType, 0>
+//{
+//public:
+//	//typedef boost::shared_ptr<NewActionBuilder<RegistryType> > Ptr;
+//
+//	~NewActionBuilder() {}
+//
+//	NewActionBuilder(RegistryType &_registry) : registry(_registry) 
+//		, actualAction(new CallAction<RetType>()) {}		
+//
+//	ActionBuilder<RetType> &AllwaysReturn(RetType returns)
+//	{
+//		actualAction->SetReturn(returns);
+//		registry.AddAction(actualAction);
+//		return *this;
+//	}
+//
+//   NewActionBuilder<RegistryType, RetType, 0> &AllwaysExecute(boost::function0<RetType> func)
+//   {
+//      actualAction->SetFunction(func);
+//      registry.AddAction(actualAction);
+//      return *this;
+//   }
+//private:
+//	RegistryType &registry;
+//	CallAction<RetType> *actualAction;
 //};
 
 } // namespace carnamock

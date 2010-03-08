@@ -28,8 +28,6 @@ namespace carnamock {
 					return niceMocks[mockObject];
 				return false;
 			}
-
-		private:
 		};
 
 

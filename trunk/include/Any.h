@@ -4,6 +4,19 @@
 
 #include "Matcher.h"
 
+namespace carnamock {
+
+class Any : public IMatcher
+{
+public:
+	virtual bool operator==(IValueHolder &value)
+	{
+		return true;
+	}
+};
+
+} //namespace carnamock
+
 
 //deprecated! 
 //use hamcrest!

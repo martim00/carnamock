@@ -4,7 +4,7 @@
 #include "Any.h"
 #include "MockMap.h"
 #include "NiceMock.h"
-#include "CallMatcher.h"
+#include "ExpectationBuilder.h"
 #include "Expectation.h"
 
 #include <boost/bind.hpp>
@@ -29,6 +29,7 @@ struct ProductionClass {
 	virtual void metodoSemRetornoSemParam()= 0;
 	virtual void metodoSemRetornoComUmParam(int&)= 0;
 	virtual void metodoSemRetornoComDoisParam(char*, int)= 0;
+	virtual void constCharConstParameter(const char* const)= 0;
 };
 
 struct MockClass : public ProductionClass
@@ -48,6 +49,7 @@ public:
 	VOID_METHOD0(void, metodoSemRetornoSemParam);
 	VOID_METHOD1(void, metodoSemRetornoComUmParam, int&);
 	VOID_METHOD2(void, metodoSemRetornoComDoisParam, char*, int);
+	VOID_METHOD1(void, constCharConstParameter, const char* const);	
 };
 
 
@@ -73,6 +75,9 @@ class MockTest : public CPPUNIT_NS::TestFixture
    CPPUNIT_TEST( testThenExecuteStatementPermiteParametros );
 	CPPUNIT_TEST( testNiceMockNaoReclama );
    CPPUNIT_TEST( testUsingHamcrest );
+	CPPUNIT_TEST( testExpectationBuilder );
+	CPPUNIT_TEST( testConstCharConstParameter );
+	CPPUNIT_TEST( testExpectationNaoPrecisaSetarParams );
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -323,14 +328,55 @@ protected:
 		MockClass mock;
 
       EXPECT(mock, metodoSemRetornoComDoisParam)->WithParams(
-         hamcrest::equal_to<char*>("2"), hamcrest::equal_to(10)).Times(1);
+         hamcrest::equal_to<char*>("2"), equal_to(10)).Times(1);
 
       mock.metodoSemRetornoComDoisParam("2", 10);
 	}
 
-	
+	void testExpectationBuilder()
+	{
+		CallRegistry<int, int> reg1;
+		ExpectationBuilder<CallRegistry<int, int> > builder1(reg1);
 
+		builder1.WithParams(equal_to(1));
 
+		CallRegistry<int, int, double> reg2;
+		ExpectationBuilder<CallRegistry<int, int, double> > builder2(reg2);
+
+		builder2.WithParams(equal_to(1), equal_to(2.));
+
+		CallRegistry<int, int, double, const char*> reg3;
+		ExpectationBuilder<CallRegistry<int, int, double, const char*> > builder3(reg3);
+
+		builder3.WithParams(equal_to(1), equal_to(2.), equal_to<const char*>("a"));
+
+		CallRegistry<int, int, double, const char*, int> reg4;
+		ExpectationBuilder<CallRegistry<int, int, double, const char*, int> > builder4(reg4);
+
+		builder4.WithParams(equal_to(1), equal_to(2.), equal_to<const char*>("a"), anything<int>());
+	}
+
+	void testConstCharConstParameter()
+	{
+		MockClass mock;
+
+		EXPECT(mock, constCharConstParameter)->WithParams(equal_to<const char*>("a")).Times(1);
+
+		mock.constCharConstParameter("a");
+	}
+
+	void testExpectationNaoPrecisaSetarParams()
+	{
+		MockClass mock;
+		EXPECT(mock, constCharConstParameter)->Times(1);
+		mock.constCharConstParameter("a");
+	}
+
+	//void testEspecializarActionBuilderDeAcordoComReturnType()
+	//{
+	//	CallRegistry<int, double> reg;
+	//	NewActionBuilder<CallRegistry<int, double> > builder(reg);
+	//}
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION( MockTest );

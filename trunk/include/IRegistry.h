@@ -48,7 +48,7 @@ public:
 
 	std::string MethodName() const { return methodName; }
 	void SetMethodName(const std::string &_methodName) { methodName= _methodName; }
-
+	
 	void VerifyOnDestructor(bool verify)
 	{
 		verifyOnDestructor= verify;
@@ -58,12 +58,6 @@ public:
 	{	      
 		actions.push_back(boost::shared_ptr<CallActionBase>(_action));
 	}
-
-	/*bool AllCallsVerified()
-	{
-	if (effectiveCalls.empty()) return true;
-	return (effectiveCalls[effectiveCalls.size()-1]->Verified());
-	}*/
 
 	void AddCall(Call *call)
 	{  

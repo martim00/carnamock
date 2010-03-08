@@ -203,15 +203,15 @@
 				>
 			</File>
 			<File
-				RelativePath=".\include\CallMatcher.h"
-				>
-			</File>
-			<File
 				RelativePath=".\include\CallRegistry.h"
 				>
 			</File>
 			<File
 				RelativePath=".\include\Expectation.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\ExpectationBuilder.h"
 				>
 			</File>
 			<File
