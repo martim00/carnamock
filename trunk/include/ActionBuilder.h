@@ -6,459 +6,241 @@
 
 #include <boost/shared_ptr.hpp>
 
-namespace carnamock {
+namespace carnamock {   
 
-
-template <class ReturnType= nulltype, class Param1= nulltype, class Param2= nulltype, class Param3= nulltype, class Param4= nulltype, class Param5= nulltype> 
-class ActionBuilder;
-
-template <class Derived>
-class ActionBuilderBase 
-{
-public:
-   typedef boost::shared_ptr<Derived> Ptr;
-   virtual ~ActionBuilderBase() {}
-};
-
-// 0 arity
-template <class ReturnType>
-class ActionBuilder<ReturnType> : public ActionBuilderBase<ActionBuilder<ReturnType> >
-{
-public:
-	ActionBuilder(
-		IRegistry &_reg
-	) : registry(_reg), actualAction(new CallAction<ReturnType>()) {}	
-
-	ActionBuilder<ReturnType> &AllwaysReturn(ReturnType returns)
-	{
-		actualAction->SetReturn(returns);
-		registry.AddAction(actualAction);
-		return *this;
-	}
-
-   ActionBuilder<ReturnType> &AllwaysExecute(boost::function0<ReturnType> func)
+   //with parameters and return
+   template <class RegistryType
+      , class ReturnType= typename RegistryType::RegistryTraits::ReturnType
+      , int NrParams= RegistryType::NrParams >
+   class ActionBuilder 
    {
-      actualAction->SetFunction(func);
-      registry.AddAction(actualAction);
-      return *this;
-   }
-private:
-	CallAction<ReturnType> *actualAction;
-	IRegistry &registry;
-};
+   public:
+      typedef boost::shared_ptr<ActionBuilder<RegistryType, ReturnType, NrParams> > Ptr;
 
-template <>
-class ActionBuilder<void> : public ActionBuilderBase<ActionBuilder<void> >
-{
-public:
-   ActionBuilder(
-      IRegistry &_reg
-      ) : registry(_reg), actualAction(new CallAction<void>()) {}	
+      ActionBuilder(
+         RegistryType &_reg
+         ) : registry(_reg), actualAction(new CallAction<typename RegistryType::RegistryTraits>()) {}
+      
+      template <class Param1>
+      ActionBuilder<RegistryType, ReturnType, NrParams> &WithParam(const hamcrest::matcher<Param1> &matcher)
+      {
+         BOOST_STATIC_ASSERT(RegistryType::RegistryTraits::NrParams == 1);
+         BOOST_STATIC_ASSERT((boost::is_same<typename RegistryType::Param1, Param1>::value));
+         actualAction->AddParam(new IMatcherWrapper<hamcrest::matcher<Param1>, Param1>(matcher.copy()));
+         return *this;
+      }
 
-   ActionBuilder<void> &AllwaysExecute(boost::function0<void> func)
+      template <class Param1, class Param2>
+      ActionBuilder<RegistryType, ReturnType, NrParams> &WithParams(
+         const hamcrest::matcher<Param1> &matcher1
+         , const hamcrest::matcher<Param2> &matcher2)
+      {
+         BOOST_STATIC_ASSERT(RegistryType::RegistryTraits::NrParams == 2);
+         BOOST_STATIC_ASSERT((boost::is_same<typename RegistryType::Param1, Param1>::value));
+         BOOST_STATIC_ASSERT((boost::is_same<typename RegistryType::Param2, Param2>::value));
+         actualAction->AddParam(new IMatcherWrapper<hamcrest::matcher<Param1>, Param1>(matcher1.copy()));
+         actualAction->AddParam(new IMatcherWrapper<hamcrest::matcher<Param2>, Param2>(matcher2.copy()));
+         return *this;
+      }
+
+      template <class Param1, class Param2, class Param3>
+      ActionBuilder<RegistryType, ReturnType, NrParams> &WithParams(
+         const hamcrest::matcher<Param1> &matcher1
+         , const hamcrest::matcher<Param2> &matcher2
+         , const hamcrest::matcher<Param3> &matcher3)
+      {
+         BOOST_STATIC_ASSERT(RegistryType::RegistryTraits::NrParams == 3);
+         BOOST_STATIC_ASSERT((boost::is_same<typename RegistryType::Param1, Param1>::value));
+         BOOST_STATIC_ASSERT((boost::is_same<typename RegistryType::Param2, Param2>::value));
+         BOOST_STATIC_ASSERT((boost::is_same<typename RegistryType::Param3, Param3>::value));
+         actualAction->AddParam(new IMatcherWrapper<hamcrest::matcher<Param1>, Param1>(matcher1.copy()));
+         actualAction->AddParam(new IMatcherWrapper<hamcrest::matcher<Param2>, Param2>(matcher2.copy()));
+         actualAction->AddParam(new IMatcherWrapper<hamcrest::matcher<Param3>, Param3>(matcher3.copy()));
+         return *this;
+      }
+
+      template <class Param1, class Param2, class Param3, class Param4>
+      ActionBuilder<RegistryType, ReturnType, NrParams> &WithParams(
+         const hamcrest::matcher<Param1> &matcher1
+         , const hamcrest::matcher<Param2> &matcher2
+         , const hamcrest::matcher<Param3> &matcher3
+         , const hamcrest::matcher<Param4> &matcher4)
+      {
+         BOOST_STATIC_ASSERT(RegistryType::RegistryTraits::NrParams == 4);
+         BOOST_STATIC_ASSERT((boost::is_same<typename RegistryType::Param1, Param1>::value));
+         BOOST_STATIC_ASSERT((boost::is_same<typename RegistryType::Param2, Param2>::value));
+         BOOST_STATIC_ASSERT((boost::is_same<typename RegistryType::Param3, Param3>::value));
+         BOOST_STATIC_ASSERT((boost::is_same<typename RegistryType::Param4, Param4>::value));
+         actualAction->AddParam(new IMatcherWrapper<hamcrest::matcher<Param1>, Param1>(matcher1.copy()));
+         actualAction->AddParam(new IMatcherWrapper<hamcrest::matcher<Param2>, Param2>(matcher2.copy()));
+         actualAction->AddParam(new IMatcherWrapper<hamcrest::matcher<Param3>, Param3>(matcher3.copy()));
+         actualAction->AddParam(new IMatcherWrapper<hamcrest::matcher<Param4>, Param4>(matcher4.copy()));
+         return *this;
+      }
+
+      template <class ReturnType>
+      ActionBuilder<RegistryType, ReturnType, NrParams> &ThenReturn(ReturnType returns)
+      {
+         BOOST_STATIC_ASSERT((!boost::is_same<void, ReturnType>::value));
+         actualAction->SetReturn(returns);
+         registry.AddAction(actualAction);
+         return *this;
+      }
+
+      ActionBuilder<RegistryType, ReturnType, NrParams> &ThenExecute(typename RegistryType::RegistryTraits::FunctionType func)
+      {
+         actualAction->SetFunction(func);
+         registry.AddAction(actualAction);
+         return *this;
+      }
+
+   private:
+      CallAction<typename RegistryType::RegistryTraits> *actualAction;
+      RegistryType &registry;    
+   };
+
+   //no return, no parameter
+   template <class RegistryType>
+   class ActionBuilder<RegistryType, void, 0> 
    {
-      actualAction->SetFunction(func);
-      registry.AddAction(actualAction);
-      return *this;
-   }
-private:
-   CallAction<void> *actualAction;
-   IRegistry &registry;
-};
+   public:
+      typedef boost::shared_ptr<ActionBuilder<RegistryType, void, 0> > Ptr;
 
-//1 arity
+      ActionBuilder(
+         RegistryType &_reg
+         ) : registry(_reg), actualAction(new CallAction<typename RegistryType::RegistryTraits>()) 
+      {
+      }      
 
-template <class ReturnType, class Param1>
-class ActionBuilder<ReturnType, Param1> : public ActionBuilderBase<ActionBuilder<ReturnType, Param1> >
-{
-public:
-	ActionBuilder(
-		IRegistry &_reg
-	) : registry(_reg), actualAction(new CallAction<ReturnType, Param1>()) 
-	{
-	}
+      ActionBuilder<RegistryType, void, 0> &AllwaysExecute(typename RegistryType::RegistryTraits::FunctionType func)
+      {
+         actualAction->SetFunction(func);
+         registry.AddAction(actualAction);
+         return *this;
+      }
 
-	ActionBuilder<ReturnType, Param1> &WithParam(hamcrest::matcher<Param1> &matcher)
-	{
-		actualAction->SetParam(matcher);
-		return *this;
-	}	
+   private:
+      CallAction<typename RegistryType::RegistryTraits> *actualAction;
+      RegistryType &registry;    
+   };
 
-	ActionBuilder<ReturnType, Param1> &ThenReturn(ReturnType returns)
-	{
-		actualAction->SetReturn(returns);
-		registry.AddAction(actualAction);
-		return *this;
-	}
 
-   ActionBuilder<ReturnType, Param1> &ThenExecute(boost::function1<ReturnType, Param1> func)
+   //no return with parameters
+   template <class RegistryType, int NrParams>
+   class ActionBuilder<RegistryType, void, NrParams> 
    {
-      actualAction->SetFunction(func);
-      registry.AddAction(actualAction);
-      return *this;
-   }
+   public:
+      typedef boost::shared_ptr<ActionBuilder<RegistryType, void, NrParams> > Ptr;
 
-private:
-	CallAction<ReturnType, Param1> *actualAction;
-	IRegistry &registry;
-};
+      ActionBuilder(
+         RegistryType &_reg
+         ) : registry(_reg), actualAction(new CallAction<typename RegistryType::RegistryTraits>()) 
+      {
+      }
 
-template <class Param1>
-class ActionBuilder<void, Param1> : public ActionBuilderBase<ActionBuilder<void, Param1> >
-{
-public:
-   ActionBuilder(
-      IRegistry &_reg
-      ) : registry(_reg), actualAction(new CallAction<void, Param1>()) 
+      template <class Param1>
+      ActionBuilder<RegistryType, void, NrParams> &WithParam(const hamcrest::matcher<Param1> &matcher)
+      {
+         BOOST_STATIC_ASSERT(RegistryType::RegistryTraits::NrParams == 1);
+         BOOST_STATIC_ASSERT((boost::is_same<typename RegistryType::Param1, Param1>::value));
+         actualAction->AddParam(new IMatcherWrapper<hamcrest::matcher<Param1>, Param1>(matcher.copy()));
+         return *this;
+      }
+
+      template <class Param1, class Param2>
+      ActionBuilder<RegistryType, void, NrParams> &WithParams(
+         const hamcrest::matcher<Param1> &matcher1
+         , const hamcrest::matcher<Param2> &matcher2)
+      {
+         BOOST_STATIC_ASSERT(RegistryType::RegistryTraits::NrParams == 2);
+         BOOST_STATIC_ASSERT((boost::is_same<typename RegistryType::Param1, Param1>::value));
+         BOOST_STATIC_ASSERT((boost::is_same<typename RegistryType::Param2, Param2>::value));         
+         actualAction->AddParam(new IMatcherWrapper<hamcrest::matcher<Param1>, Param1>(matcher1.copy()));
+         actualAction->AddParam(new IMatcherWrapper<hamcrest::matcher<Param2>, Param2>(matcher2.copy()));
+         return *this;
+      }
+
+      template <class Param1, class Param2, class Param3>
+      ActionBuilder<RegistryType, void, NrParams> &WithParams(
+         const hamcrest::matcher<Param1> &matcher1
+         , const hamcrest::matcher<Param2> &matcher2
+         , const hamcrest::matcher<Param3> &matcher3)
+      {
+         BOOST_STATIC_ASSERT(RegistryType::RegistryTraits::NrParams == 3);
+         BOOST_STATIC_ASSERT((boost::is_same<typename RegistryType::Param1, Param1>::value));
+         BOOST_STATIC_ASSERT((boost::is_same<typename RegistryType::Param2, Param2>::value));
+         BOOST_STATIC_ASSERT((boost::is_same<typename RegistryType::Param3, Param3>::value));         
+         actualAction->AddParam(new IMatcherWrapper<hamcrest::matcher<Param1>, Param1>(matcher1.copy()));
+         actualAction->AddParam(new IMatcherWrapper<hamcrest::matcher<Param2>, Param2>(matcher2.copy()));
+         actualAction->AddParam(new IMatcherWrapper<hamcrest::matcher<Param3>, Param3>(matcher3.copy()));
+         return *this;
+      }
+
+      template <class Param1, class Param2, class Param3, class Param4>
+      ActionBuilder<RegistryType, void, NrParams> &WithParams(
+         const hamcrest::matcher<Param1> &matcher1
+         , const hamcrest::matcher<Param2> &matcher2
+         , const hamcrest::matcher<Param3> &matcher3
+         , const hamcrest::matcher<Param4> &matcher4)
+      {
+         BOOST_STATIC_ASSERT(RegistryType::RegistryTraits::NrParams == 4);
+         BOOST_STATIC_ASSERT((boost::is_same<typename RegistryType::Param1, Param1>::value));
+         BOOST_STATIC_ASSERT((boost::is_same<typename RegistryType::Param2, Param2>::value));
+         BOOST_STATIC_ASSERT((boost::is_same<typename RegistryType::Param3, Param3>::value));
+         BOOST_STATIC_ASSERT((boost::is_same<typename RegistryType::Param4, Param4>::value));
+         actualAction->AddParam(new IMatcherWrapper<hamcrest::matcher<Param1>, Param1>(matcher1.copy()));
+         actualAction->AddParam(new IMatcherWrapper<hamcrest::matcher<Param2>, Param2>(matcher2.copy()));
+         actualAction->AddParam(new IMatcherWrapper<hamcrest::matcher<Param3>, Param3>(matcher3.copy()));
+         actualAction->AddParam(new IMatcherWrapper<hamcrest::matcher<Param4>, Param4>(matcher4.copy()));
+         return *this;
+      }
+
+      ActionBuilder<RegistryType, void, NrParams> &ThenExecute(
+         typename RegistryType::RegistryTraits::FunctionType func)
+      {
+         actualAction->SetFunction(func);
+         registry.AddAction(actualAction);
+         return *this;
+      }
+
+   private:
+      CallAction<typename RegistryType::RegistryTraits> *actualAction;
+      RegistryType &registry;
+   };
+
+   //with return and no parameter
+   template <class RegistryType, class ReturnType>
+   class ActionBuilder<RegistryType, ReturnType, 0> 
    {
-   }
+   public:
+      typedef boost::shared_ptr<ActionBuilder<RegistryType, ReturnType, 0> > Ptr;
 
-   ActionBuilder<void, Param1> &WithParam(hamcrest::matcher<Param1> &matcher)
-   {
-      actualAction->SetParam(matcher);
-      return *this;
-   }
+      ActionBuilder(
+         RegistryType &_reg
+         ) : registry(_reg), actualAction(new CallAction<typename RegistryType::RegistryTraits>()) 
+      {
+      }      
 
-   ActionBuilder<void, Param1> &ThenExecute(boost::function1<void, Param1> func)
-   {
-      actualAction->SetFunction(func);
-      registry.AddAction(actualAction);
-      return *this;
-   }
+      template <class ReturnType>
+      ActionBuilder<RegistryType, ReturnType, 0> &AllwaysReturn(ReturnType returns)
+      {
+         BOOST_STATIC_ASSERT((!boost::is_same<void, ReturnType>::value));
+         actualAction->SetReturn(returns);
+         registry.AddAction(actualAction);
+         return *this;
+      }
 
-private:
-   CallAction<void, Param1> *actualAction;
-   IRegistry &registry;
-};
+      ActionBuilder<RegistryType, ReturnType, 0> &AllwaysExecute(typename RegistryType::RegistryTraits::FunctionType func)
+      {
+         actualAction->SetFunction(func);
+         registry.AddAction(actualAction);
+         return *this;
+      }
 
-//2 arity
-
-template <class ReturnType, class Param1, class Param2>
-class ActionBuilder<ReturnType, Param1, Param2> 
-   : public ActionBuilderBase<ActionBuilder<ReturnType, Param1, Param2> >
-{
-public:
-	ActionBuilder(
-		IRegistry &_reg
-	) : registry(_reg), actualAction(new CallAction<ReturnType, Param1, Param2>()) 
-	{
-	}
-
-	ActionBuilder<ReturnType, Param1, Param2> &WithParam(hamcrest::matcher<Param1> &matcher1
-		, hamcrest::matcher<Param2> &matcher2)
-	{
-		actualAction->SetParam(matcher1, matcher2);
-		return *this;
-	}	
-
-	ActionBuilder<ReturnType, Param1, Param2> &ThenReturn(ReturnType returns)
-	{
-		actualAction->SetReturn(returns);
-		registry.AddAction(actualAction);
-		return *this;
-	}
-
-   ActionBuilder<ReturnType, Param1, Param2> &ThenExecute(
-      boost::function2<ReturnType, Param1, Param2> func)
-   {
-      actualAction->SetFunction(func);
-      registry.AddAction(actualAction);
-      return *this;
-   }
-
-private:
-	CallAction<ReturnType, Param1, Param2> *actualAction;
-	IRegistry &registry;
-};
-
-template <class Param1, class Param2>
-class ActionBuilder<void, Param1, Param2> 
-   : public ActionBuilderBase<ActionBuilder<void, Param1, Param2> >
-{
-public:
-   ActionBuilder(
-      IRegistry &_reg
-      ) : registry(_reg), actualAction(new CallAction<void, Param1, Param2>()) 
-   {
-   }
-
-   ActionBuilder<void, Param1, Param2> &WithParam(hamcrest::matcher<Param1> &matcher1
-      , hamcrest::matcher<Param2> &matcher2)
-   {
-      actualAction->SetParam(matcher1, matcher2);
-      return *this;
-   }	   
-
-   ActionBuilder<void, Param1, Param2> &ThenExecute(
-      boost::function2<void, Param1, Param2> func)
-   {
-      actualAction->SetFunction(func);
-      registry.AddAction(actualAction);
-      return *this;
-   }
-
-private:
-   CallAction<void, Param1, Param2> *actualAction;
-   IRegistry &registry;
-};
-
-//3 arity
-
-template <class ReturnType, class Param1, class Param2, class Param3>
-class ActionBuilder<ReturnType, Param1, Param2, Param3>
-   : public ActionBuilderBase<ActionBuilder<ReturnType, Param1, Param2, Param3> >
-{
-public:
-	ActionBuilder(
-		IRegistry &_reg
-	) : registry(_reg), actualAction(new CallAction<ReturnType, Param1, Param2, Param3>()) 
-	{
-	}
-
-	ActionBuilder<ReturnType, Param1, Param2, Param3> &WithParam(hamcrest::matcher<Param1> &matcher1
-		, hamcrest::matcher<Param2> &matcher2
-		, hamcrest::matcher<Param3> &matcher3)
-	{
-		actualAction->SetParam(matcher1, matcher2, matcher3);
-		return *this;
-	}	
-
-	ActionBuilder<ReturnType, Param1, Param2, Param3> &ThenReturn(ReturnType returns)
-	{
-		actualAction->SetReturn(returns);
-		registry.AddAction(actualAction);
-		return *this;
-	}
-
-   ActionBuilder<ReturnType, Param1, Param2, Param3> &ThenExecute(
-      boost::function3<ReturnType, Param1, Param2, Param3> func)
-   {
-      actualAction->SetFunction(func);
-      registry.AddAction(actualAction);
-      return *this;
-   }
-
-private:
-	CallAction<ReturnType, Param1, Param2, Param3> *actualAction;
-	IRegistry &registry;
-};
-
-
-template <class Param1, class Param2, class Param3>
-class ActionBuilder<void, Param1, Param2, Param3>
-   : public ActionBuilderBase<ActionBuilder<void, Param1, Param2, Param3> >
-{
-public:
-   ActionBuilder(
-      IRegistry &_reg
-      ) : registry(_reg), actualAction(new CallAction<ReturnType, Param1, Param2, Param3>()) {}
-
-   ActionBuilder<void, Param1, Param2, Param3> &WithParam(hamcrest::matcher<Param1> &matcher1
-      , hamcrest::matcher<Param2> &matcher2
-      , hamcrest::matcher<Param3> &matcher3)
-   {
-      actualAction->SetParam(matcher1, matcher2, matcher3);
-      return *this;
-   }	
-
-   ActionBuilder<void, Param1, Param2, Param3> &ThenExecute(
-      boost::function3<void, Param1, Param2, Param3> func)
-   {
-      actualAction->SetFunction(func);
-      registry.AddAction(actualAction);
-      return *this;
-   }
-
-private:
-   CallAction<void, Param1, Param2, Param3> *actualAction;
-   IRegistry &registry;
-};
-
-//4 arity
-
-template <class ReturnType, class Param1, class Param2, class Param3, class Param4>
-class ActionBuilder<ReturnType, Param1, Param2, Param3, Param4>
-   : public ActionBuilderBase<ActionBuilder<ReturnType, Param1, Param2, Param3, Param4> >
-{
-public:
-	ActionBuilder(
-		IRegistry &_reg
-	) : registry(_reg), actualAction(new CallAction<ReturnType, Param1, Param2, Param3, Param4>()) 
-	{
-	}
-
-	ActionBuilder<ReturnType, Param1, Param2, Param3, Param4> &WithParam(
-		hamcrest::matcher<Param1> &matcher1
-		, hamcrest::matcher<Param2> &matcher2
-		, hamcrest::matcher<Param3> &matcher3
-		, hamcrest::matcher<Param4> &matcher4
-		)
-	{
-		actualAction->SetParam(matcher1, matcher2, matcher3, matcher4);
-		return *this;
-	}	
-
-	ActionBuilder<ReturnType, Param1, Param2, Param3, Param4> &ThenReturn(ReturnType returns)
-	{
-		actualAction->SetReturn(returns);
-		registry.AddAction(actualAction);
-		return *this;
-	}
-
-   ActionBuilder<ReturnType, Param1, Param2, Param3, Param4> &ThenExecute(
-      boost::function4<ReturnType, Param1, Param2, Param3, Param4> func)
-   {
-      actualAction->SetFunction(func);
-      registry.AddAction(actualAction);
-      return *this;
-   }
-
-private:
-	CallAction<ReturnType, Param1, Param2, Param3, Param4> *actualAction;
-	IRegistry &registry;
-};
-
-
-template <class Param1, class Param2, class Param3, class Param4>
-class ActionBuilder<void, Param1, Param2, Param3, Param4>
-   : public ActionBuilderBase<ActionBuilder<void, Param1, Param2, Param3, Param4> >
-{
-public:
-   ActionBuilder(
-      IRegistry &_reg
-      ) : registry(_reg), actualAction(new CallAction<void, Param1, Param2, Param3, Param4>()) 
-   {
-   }
-
-   ActionBuilder<void, Param1, Param2, Param3, Param4> &WithParam(
-      hamcrest::matcher<Param1> &matcher1
-      , hamcrest::matcher<Param2> &matcher2
-      , hamcrest::matcher<Param3> &matcher3
-      , hamcrest::matcher<Param4> &matcher4
-      )
-   {
-      actualAction->SetParam(matcher1, matcher2, matcher3, matcher4);
-      return *this;
-   }	
-
-   ActionBuilder<void, Param1, Param2, Param3, Param4> &ThenExecute(
-      boost::function4<void, Param1, Param2, Param3, Param4> func)
-   {
-      actualAction->SetFunction(func);
-      registry.AddAction(actualAction);
-      return *this;
-   }
-
-private:
-   CallAction<void, Param1, Param2, Param3, Param4> *actualAction;
-   IRegistry &registry;
-};
-
-//
-////5 arity
-//
-//template <class ReturnType, class Param1, class Param2, class Param3, class Param4, class Param5>
-//class ActionBuilder<ReturnType, Param1, Param2, Param3, Param4, Param5>
-//{
-//public:
-//	ActionBuilder(
-//		CallRegistry<ReturnType, Param1, Param2, Param3, Param4, Param5> &_reg
-//	) : registry(_reg), actualAction(new CallAction<ReturnType, Param1, Param2, Param3, Param4, Param5>()) 
-//	{
-//	}
-//
-//	ActionBuilder<ReturnType, Param1, Param2, Param3, Param4, Param5> &WithParam(
-//		hamcrest::matcher<Param1> &matcher1
-//		, hamcrest::matcher<Param2> &matcher2
-//		, hamcrest::matcher<Param3> &matcher3
-//		, hamcrest::matcher<Param4> &matcher4
-//		, hamcrest::matcher<Param5> &matcher5
-//		)
-//	{
-//		actualAction->SetParam(matcher1, matcher2, matcher3, matcher4);
-//		return *this;
-//	}	
-//
-//	ActionBuilder<ReturnType, Param1, Param2, Param3, Param4, Param5> &ThenReturn(ReturnType returns)
-//	{
-//		actualAction->SetReturn(returns);
-//		registry.AddAction(actualAction);
-//		return *this;
-//	}
-//
-//private:
-//	CallAction<ReturnType, Param1, Param2, Param3, Param4, Param5> *actualAction;
-//	CallRegistry<ReturnType, Param1, Param2, Param3, Param4, Param5> &registry;
-//};
-
-
-//tentativa de retirar code bloat
-
-//template <class RegistryType, class RetType= RegistryType::ReturnType, int nrArgs= RegistryType::NrParams>
-//class NewActionBuilder
-//{
-//	RegistryType &registry;
-//
-//public:
-//	//typedef boost::shared_ptr<NewActionBuilder<RegistryType> > Ptr;
-//
-//	~NewActionBuilder() {}
-//
-//	NewActionBuilder(RegistryType &_registry) : registry(_registry) {}
-//};
-//
-////0 params and no return
-//template <class RegistryType>
-//class NewActionBuilder<RegistryType, void, 0>
-//{
-//public:
-//	//typedef boost::shared_ptr<NewActionBuilder<RegistryType> > Ptr;
-//
-//	~NewActionBuilder() {}
-//
-//	NewActionBuilder(RegistryType &_registry) : registry(_registry) 
-//		, actualAction(new CallAction<void>()) {}		
-//
-//   NewActionBuilder<RegistryType, void, 0> &AllwaysExecute(boost::function0<void> func)
-//   {
-//      actualAction->SetFunction(func);
-//      registry.AddAction(actualAction);
-//      return *this;
-//   }
-//private:
-//	RegistryType &registry;
-//	CallAction<void> *actualAction;
-//};
-//
-////0 params and return
-//template <class RegistryType, class RetType>
-//class NewActionBuilder<RegistryType, RetType, 0>
-//{
-//public:
-//	//typedef boost::shared_ptr<NewActionBuilder<RegistryType> > Ptr;
-//
-//	~NewActionBuilder() {}
-//
-//	NewActionBuilder(RegistryType &_registry) : registry(_registry) 
-//		, actualAction(new CallAction<RetType>()) {}		
-//
-//	ActionBuilder<RetType> &AllwaysReturn(RetType returns)
-//	{
-//		actualAction->SetReturn(returns);
-//		registry.AddAction(actualAction);
-//		return *this;
-//	}
-//
-//   NewActionBuilder<RegistryType, RetType, 0> &AllwaysExecute(boost::function0<RetType> func)
-//   {
-//      actualAction->SetFunction(func);
-//      registry.AddAction(actualAction);
-//      return *this;
-//   }
-//private:
-//	RegistryType &registry;
-//	CallAction<RetType> *actualAction;
-//};
+   private:
+      CallAction<typename RegistryType::RegistryTraits> *actualAction;
+      RegistryType &registry;    
+   };
 
 } // namespace carnamock
 

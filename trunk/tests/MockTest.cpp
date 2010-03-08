@@ -235,7 +235,7 @@ protected:
 
 		int a= 10;
 
-      WHEN_CALL(mock, param2)->WithParam(equal_to(10), equal_to<std::string>("ola"))
+      WHEN_CALL(mock, param2)->WithParams(equal_to(10), equal_to<std::string>("ola"))
          .ThenReturn(10.2);
 
 		const std::string ola("ola");
@@ -306,7 +306,8 @@ protected:
    {
       Dummy dummy;
       MockClass mock;
-      WHEN_CALL(mock, metodoSemRetornoComDoisParam)->WithParam(equal_to<char*>("2"), equal_to(10))
+      
+      WHEN_CALL(mock, metodoSemRetornoComDoisParam)->WithParams(equal_to<char*>("2"), equal_to(10))
          .ThenExecute(boost::bind(&Dummy::dummyMethodWithReturnAndParam, &dummy, _1, _2));
 
       mock.metodoSemRetornoComDoisParam("2", 10);

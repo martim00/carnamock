@@ -14,8 +14,8 @@ public:
       return description.str();
    }
 
-	virtual bool operator==(IValueHolder &value)= 0;
-	virtual bool operator!=(IValueHolder &value)
+	virtual bool operator==(const IValueHolder &value)= 0;
+	virtual bool operator!=(const IValueHolder &value)
 	{
 		return !operator==(value);
 	}
@@ -29,9 +29,9 @@ class IMatcherWrapper : public IMatcher
 {
 public:
 	IMatcherWrapper(hc_matcher *_match) : match(_match) {}
-   virtual bool operator==(IValueHolder &value)
+   virtual bool operator==(const IValueHolder &value)
    {
-      ValueHolder<Type> *v= dynamic_cast<ValueHolder<Type>*>(&value);
+      const ValueHolder<Type> *v= dynamic_cast<const ValueHolder<Type>*>(&value);
       return (*match)(v->GetValue());
    }
 

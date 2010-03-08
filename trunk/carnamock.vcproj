@@ -215,6 +215,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\include\FunctionTraits.h"
+				>
+			</File>
+			<File
 				RelativePath=".\include\IRegistry.h"
 				>
 			</File>

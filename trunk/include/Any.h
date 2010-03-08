@@ -9,7 +9,7 @@ namespace carnamock {
 class Any : public IMatcher
 {
 public:
-	virtual bool operator==(IValueHolder &value)
+	virtual bool operator==(const IValueHolder &value)
 	{
 		return true;
 	}

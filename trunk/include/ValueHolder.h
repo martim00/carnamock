@@ -14,7 +14,7 @@ public:
    virtual ~ValueHolder() {}
 	ValueHolder(ValueType _value) : value(_value) {}
 
-	ValueType GetValue() 
+	ValueType GetValue() const 
 	{ 
 		return value; 
 	}
