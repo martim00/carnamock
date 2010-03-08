@@ -1,3 +1,4 @@
+#pragma once
 #ifndef INCLUDED_VALUEHOLDER_H
 #define INCLUDED_VALUEHOLDER_H
 
