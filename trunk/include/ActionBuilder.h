@@ -220,8 +220,7 @@ namespace carnamock {
          ) : registry(_reg), actualAction(new CallAction<typename RegistryType::RegistryTraits>()) 
       {
       }      
-
-      template <class ReturnType>
+      
       ActionBuilder<RegistryType, ReturnType, 0> &AllwaysReturn(ReturnType returns)
       {
          BOOST_STATIC_ASSERT((!boost::is_same<void, ReturnType>::value));

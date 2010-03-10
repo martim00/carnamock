@@ -88,10 +88,12 @@ namespace carnamock {
 
 		void Times(size_t times)
 		{
-			Expectation *expectation= new Expectation();
-         for (unsigned i= 0; i < RegistryType::RegistryTraits::NrParams; i++)
-				expectation->AddParamMatcher(paramWasSetted ? matchers[i] : new Any());
-			registry.AddExpectation(expectation);
+         for (unsigned j= 0; j < times; j++) {
+         	Expectation *expectation= new Expectation();
+            for (unsigned i= 0; i < RegistryType::RegistryTraits::NrParams; i++)
+				   expectation->AddParamMatcher(paramWasSetted ? matchers[i] : new Any());
+   			registry.AddExpectation(expectation);
+         }
 		}
 
 		bool paramWasSetted;

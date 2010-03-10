@@ -65,7 +65,7 @@ public:
 
    typename ActionBuilder<Type, ReturnType, NrParams>::Ptr WhenCall()
    {
-      return ActionBuilder<Type>::Ptr(new ActionBuilder<Type>(*this));
+      return ActionBuilder<Type, ReturnType, NrParams>::Ptr(new ActionBuilder<Type, ReturnType, NrParams>(*this));
    }
 };
 
@@ -188,7 +188,7 @@ public:
 	typedef typename no_cref<P3>::type Param3;
 	enum { NrParams= 3 };
 
-   typedef CallRegistry<ReturnType, Param1, Param2, Param3> Type;
+   typedef CallRegistry<ReturnType, P1, P2, P3> Type;
 
 	virtual ~CallRegistry() {}
 
@@ -218,7 +218,12 @@ public:
 			CallAction<RegistryTraits> *action= 
             dynamic_cast<CallAction<RegistryTraits> *>(actions[i].get());
 
-			if (action->KnowsThat(p1, p2, p3)) {
+         std::vector<IValueHolder*> params;
+         params.push_back(new ValueHolder<Param1>(p1));
+         params.push_back(new ValueHolder<Param2>(p2));
+         params.push_back(new ValueHolder<Param3>(p3));
+
+			if (action->KnowsThat(params)) {
             if (!RegistryTraits::IsVoidReturn::result)
 				   return action->Execute(p1, p2, p3);
             else 
@@ -249,7 +254,7 @@ public:
       , typename no_cref<P3>::type
       , typename no_cref<P4>::type> RegistryTraits;
 
-   typedef CallRegistry<ReturnType, Param1, Param2, Param3, Param4> Type;
+   typedef CallRegistry<ReturnType, P1, P2, P3, P4> Type;
 
 	virtual ~CallRegistry() {}
 
@@ -274,10 +279,17 @@ public:
 
 		for (unsigned i= 0; i < actions.size(); i++)
 		{
-			CallAction<RegistryTraits> *action= 
-            dynamic_cast<RegistryTraits> *>(actions[i].get());
+         CallAction<RegistryTraits> *action= 
+            dynamic_cast<CallAction<RegistryTraits> *>(actions[i].get());
 
-			if (action->KnowsThat(p1, p2, p3, p4)) {
+         //TODO: clear leak
+         std::vector<IValueHolder*> params;
+         params.push_back(new ValueHolder<Param1>(p1));
+         params.push_back(new ValueHolder<Param2>(p2));
+         params.push_back(new ValueHolder<Param3>(p3));
+         params.push_back(new ValueHolder<Param4>(p4));
+
+			if (action->KnowsThat(params)) {
             if (!RegistryTraits::IsVoidReturn::result)
 				   return action->Execute(p1, p2, p3, p4);
             else 
