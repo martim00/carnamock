@@ -165,6 +165,10 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\src\Expectation.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\third_part\hamcrest\core\hc_description.cpp"
 				>
 			</File>
@@ -173,7 +177,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\IRegistry.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\tests\main.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\MockMap.cpp"
 				>
 			</File>
 			<File
@@ -207,6 +219,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\include\carnamock.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\CarnaUtils.h"
+				>
+			</File>
+			<File
 				RelativePath=".\include\Expectation.h"
 				>
 			</File>
@@ -231,11 +251,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\include\MockInfo.h"
+				>
+			</File>
+			<File
 				RelativePath=".\include\MockMap.h"
 				>
 			</File>
 			<File
 				RelativePath=".\include\NiceMock.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\NiceReportMock.h"
 				>
 			</File>
 			<File

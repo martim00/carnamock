@@ -4,6 +4,8 @@
 #include "TypeTraits.h"
 #include "ValueHolder.h"
 
+#include <sstream>
+
 namespace carnamock {
 
 class IMatcher 

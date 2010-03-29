@@ -5,107 +5,89 @@
 #include "ResultType.h"
 #include <stdexcept>
 #include "Expectation.h"
+#include "CallAction.h"
+#include "Call.h"
 
 namespace carnamock {
 
-class ICall;
-class CallActionBase;
-
+/**
+*  The base class for a method registry. Records all the informations needed for a mocked method
+*  in runtime.
+*/ 
 class IRegistry {
 public:
-	virtual ~IRegistry() {
-
-		if (verifyOnDestructor) {
-
-			if (effectiveCalls.size() != expectations.size())
-			{
-				result.reset(new TimesIncorrect(expectations.size(), GetTimesCalled()));
-			} else {
-
-				for (unsigned i= 0; i < effectiveCalls.size(); i++) {
-					Call *effectiveCall= effectiveCalls[i].get();
-					Expectation *expectedCall= expectations[i].get();
-
-					result.reset(expectedCall->Compare(effectiveCall));
-					if (result.get()) break;
-				}
-			}      
-
-			if (result.get()) {
-				std::stringstream ss;
-				ss << "Nem todas as expectations do metodo " << methodName << " foram aceitas" << std::endl;
-				ss << result->Description();
-
-				std::runtime_error e(ss.str());
-				throw e;
-			}
-		}
-		//TODO: limpar estruturas...
-
-	}
-
-	IRegistry() : actualCall(0), verifyOnDestructor(true), timesVerified(0){}
+	virtual ~IRegistry(); 
+	IRegistry();
 
 	std::string MethodName() const { return methodName; }
 	void SetMethodName(const std::string &_methodName) { methodName= _methodName; }
 	
-	void VerifyOnDestructor(bool verify)
-	{
-		verifyOnDestructor= verify;
-	}
+	/**
+	*  Verifies the expectation on destructor. 
+   *  If false the expectations will not be verified.
+	*  @param bool verify
+	*/ 
+   void VerifyOnDestructor(bool verify) { verifyOnDestructor= verify; }
 
-	void AddAction(CallActionBase *_action)
-	{	      
-		actions.push_back(boost::shared_ptr<CallActionBase>(_action));
-	}
+   /**
+   *  Sets the mock owner of this method..
+   *  @param const void * _owner
+   */ 
+   void SetOwner(const void* _owner) { owner= _owner; }
 
-	void AddCall(Call *call)
-	{  
-		effectiveCalls.push_back(boost::shared_ptr<Call>(call));
-	}
+   /**
+   *  Configure this method to throw an exception on expectations not accepted.
+   *  If false will log the error on MockMap
+   *  @see MockMap
+   *  @see MockInfo
+   *  @param bool throws
+   */ 
+   void ThrowsOnError(bool throws);
 
-	std::size_t GetTimesCalled() { return effectiveCalls.size(); }
+	/**
+	*  Adds an actions to this method registry.
+	*  @param CallActionBase * _action
+	*/ 
+   void AddAction(CallActionBase *_action);
 
-	std::vector<boost::shared_ptr<Call> > &GetCalls()
-	{
-		return effectiveCalls;
-	}
+	/**
+	*  Adds a call to this method registry.
+	*  @param Call * call
+	*/ 
+   void AddCall(Call *call);
 
-	Call *GetNextCall()
-	{
-		timesVerified++;
-		if (effectiveCalls.size() <= actualCall) {
+   /**
+	*  Adds an expectation to this method registry
+	*  @param Expectation * expectation
+	*/ 
+   void AddExpectation(Expectation *expectation);
 
+	/**
+	*  Returns the number of times that this method was called.
+	*  @return std::size_t
+	*/ 
+   std::size_t GetTimesCalled() { return effectiveCalls.size(); }
 
-			std::runtime_error e("Nao ha mais calls");
-			throw e;
-		}
-		else {
-			return effectiveCalls[actualCall++].get();
-		}
-	}
+	/**
+	*  Returns the next call made to this method.
+	*  @return Call *
+	*/ 
+   Call *GetNextCall();	
 
-	void AddExpectation(Expectation *expectation)
-	{
-		expectations.push_back(boost::shared_ptr<Expectation>(expectation));
-	}
-
-	std::size_t GetActualCall() { return actualCall; }
-
-	std::size_t TimesVerified() { return timesVerified; }
-
-	void SetResult(ResultType *_result)
-	{
-		result.reset(_result);
-	}
+	/**
+	*  Sets the actual result to this method registry.
+	*  @param ResultType * _result
+	*/ 
+   void SetResult(ResultType *_result)	{ result.reset(_result); }
 
 protected:
-	boost::shared_ptr<ResultType> result;
-
-	std::size_t actualCall;
-	std::string methodName;
+   const void *owner;
+	bool throwsOnError;
+   std::size_t actualCall;
+	std::string methodName;   
 	bool verifyOnDestructor;
    std::size_t timesVerified;
+   boost::shared_ptr<ResultType> result;
 	std::vector<boost::shared_ptr<Call> > effectiveCalls;
    std::vector<boost::shared_ptr<CallActionBase> > actions;   
 	std::vector<boost::shared_ptr<Expectation> > expectations;

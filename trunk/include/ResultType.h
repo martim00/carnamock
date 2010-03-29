@@ -4,6 +4,8 @@
 
 #include <sstream>
 
+namespace carnamock {
+
 class ResultType
 {
 public:
@@ -50,5 +52,7 @@ private:
 	size_t number;
 	std::string why;
 };
+
+} //namespace carnamock
 
 #endif

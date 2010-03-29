@@ -2,39 +2,42 @@
 #ifndef INCLUDED_EXPECTATION_H
 #define INCLUDED_EXPECTATION_H
 
-#include "Call.h"
-#include "ResultType.h"
-#include "NullType.h"
+#include <vector>
+#include <boost/shared_ptr.hpp>
+
 #include "Matcher.h"
 
 namespace carnamock {
 
-class Expectation
-{
-public:
-	~Expectation() {}
+   class Call;
+   class ResultType;
 
-   ResultType* Compare(Call* call)
+   /**
+   *  Represents an expectation of a method call. Knows how to compare him with a Call.
+   *  @see Call
+   */ 
+   class Expectation
    {
-		//must be the same size..
-		assert(call->GetNrParams() == paramsMatcher.size());
+   public:
+      ~Expectation() {}
 
-		for (size_t i= 0; i < paramsMatcher.size(); i++)
-		{
-			if (*paramsMatcher[i] != *call->GetParamAt(i))
-				return new ParameterIncorrect(i, paramsMatcher[i]->DescribeError());
-		}
-      return NULL;
-   }
+      /**
+      *  Compares the Expectation with a call.
+      *  @return ResultType* the comparation's result
+      *  @param Call * call to compare
+      */ 
+      ResultType* Compare(Call* call);
 
-	void AddParamMatcher(IMatcher *matcher)
-	{	
-		paramsMatcher.push_back(boost::shared_ptr<IMatcher>(matcher));
-	}
+      /**
+      *  Adds a parameter matcher to this expectation.
+      *  Must be in the order of method parameters
+      *  @param IMatcher * matcher
+      */ 
+      void AddParamMatcher(IMatcher *matcher);
 
-private:
-	std::vector<boost::shared_ptr<IMatcher> > paramsMatcher;
-};
+   private:
+      std::vector<boost::shared_ptr<IMatcher> > paramsMatcher;
+   };
 
 } //namespace carnamock
 

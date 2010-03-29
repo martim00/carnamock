@@ -1,17 +1,15 @@
 #include <cppunit/extensions/HelperMacros.h>
 
-#include "Macros.h"
-#include "Any.h"
-#include "MockMap.h"
-#include "NiceMock.h"
-#include "ExpectationBuilder.h"
-#include "Expectation.h"
+
+#include <carnamock.h>
 
 #include <boost/bind.hpp>
 
 #include "hamcrest/core/matchers/hc_equal_to.h"
 #include "hamcrest/core/hc_matcher.h"
 #include "hamcrest/core/matchers/hc_anything.h"
+#include "NiceReportMock.h"
+#include "NiceMock.h"
 
 using namespace hamcrest;
 using namespace carnamock;
@@ -49,7 +47,7 @@ public:
 	VOID_METHOD0(void, metodoSemRetornoSemParam);
 	VOID_METHOD1(void, metodoSemRetornoComUmParam, int&);
 	VOID_METHOD2(void, metodoSemRetornoComDoisParam, char*, int);
-	VOID_METHOD1(void, constCharConstParameter, const char* const);	
+	VOID_METHOD1(void, constCharConstParameter, const char* const);
 };
 
 
@@ -73,11 +71,12 @@ class MockTest : public CPPUNIT_NS::TestFixture
    CPPUNIT_TEST( testMetodoSemRetornoUmParametro );
    CPPUNIT_TEST( testWhenCallPermiteSetarThenExecuteStatement );
    CPPUNIT_TEST( testThenExecuteStatementPermiteParametros );
-	CPPUNIT_TEST( testNiceMockNaoReclama );
+	CPPUNIT_TEST( testNiceMockSohReclamaParaExpectationsExplicitas );
    CPPUNIT_TEST( testUsingHamcrest );
 	CPPUNIT_TEST( testExpectationBuilder );
 	CPPUNIT_TEST( testConstCharConstParameter );
 	CPPUNIT_TEST( testExpectationNaoPrecisaSetarParams );
+   //CPPUNIT_TEST( testNiceReportMockShowsReportAllOnce );
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -316,12 +315,29 @@ protected:
       EXPECT(mock, metodoSemRetornoComDoisParam)->WithParams(equal_to<char*>("2"), equal_to(10)).Times(1);
    }
 
-	void testNiceMockNaoReclama()
-	{
-		NiceMock<MockClass> mock;
-  		mock.param1(1);
-		EXPECT(mock, metodoSemRetornoComDoisParam)->WithParams(equal_to<char*>("2"), equal_to(10)).Times(1);
+	void testNiceMockSohReclamaParaExpectationsExplicitas()
+	{      
+      {
+         //nice mock without expectations doesn't complain..
+		   NiceMock<MockClass> mock;
+  		   mock.param1(1);
+      }
 
+      try {
+
+         {
+            //if has some expectation nice mock must complain
+            NiceMock<MockClass> mock;
+            EXPECT(mock, metodoSemRetornoComDoisParam)->WithParams(equal_to<char*>("2"), equal_to(10)).Times(1);
+            
+         }
+         CPPUNIT_ASSERT_MESSAGE("Nice mock with not accepted expectations. Must fail...", false);
+
+      } catch (std::runtime_error &)
+      {
+         CPPUNIT_ASSERT(true);
+      }
+		
 	}
 
 	void testUsingHamcrest()
@@ -373,11 +389,16 @@ protected:
 		mock.constCharConstParameter("a");
 	}
 
-	//void testEspecializarActionBuilderDeAcordoComReturnType()
-	//{
-	//	CallRegistry<int, double> reg;
-	//	NewActionBuilder<CallRegistry<int, double> > builder(reg);
-	//}
+   /*void testNiceReportMockShowsReportAllOnce()
+   {
+      NiceReportMock<MockClass> mock;
+      EXPECT(mock, constCharConstParameter)->Times(1);      
+
+      mock.foo();
+      mock.param1(1);            
+   }*/
+
+	
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION( MockTest );

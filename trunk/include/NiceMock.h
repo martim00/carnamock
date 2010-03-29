@@ -37,10 +37,8 @@
 #ifndef INCLUDED_NICEMOCK_H
 #define INCLUDED_NICEMOCK_H
 
-template<typename To, typename From>
-inline To implicit_cast(From const &f) {
-   return f;
-}
+#include "CarnaUtils.h"
+
 
 template <class MockClass>
 class NiceMock : public MockClass {
